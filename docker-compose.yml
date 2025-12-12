@@ -1,32 +1,31 @@
-services:mongo:
-image: mongo:6
-restart: unless-stopped
-volumes:
-- mongo-data:/data/db
-ports:
-- "27017:27017"
-
+services:
+  mongo:
+    image: mongo:6
+    restart: unless-stopped
+  volumes:
+    - mongo-data:/data/db
+  ports:
+    - "27017:27017"
 
 backend:
-build: ./backend
-environment:
-- MONGO_URI=mongodb://mongo:27017/beeyond
-- JWT_SECRET=supersecret
-depends_on:
-- mongo
-ports:
-- "4000:4000"
-restart: unless-stopped
-
+  build: ./backend
+  environment:
+    - MONGO_URI=mongodb://mongo:27017/beeyond
+    - JWT_SECRET=supersecret
+  depends_on:
+    - mongo
+  ports:
+    - "4000:4000"
+  restart: unless-stopped
 
 frontend:
-build: ./frontend
-ports:
-- "80:80"
-depends_on:
-- backend
-restart: unless-stopped
-
-
+  build: ./frontend
+  ports:
+    - "80:80"
+  depends_on:
+    - backend
+  restart: unless-stopped
+  
 volumes:
-mongo-data:
+  mongo-data:
+    driver: local
