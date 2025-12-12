@@ -1,0 +1,13 @@
+services:
+  mongo:
+    image: mongo:8.0
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: "${MONGO_INITDB_ROOT_USERNAME}"
+      MONGO_INITDB_ROOT_PASSWORD: "${MONGO_INITDB_ROOT_PASSWORD}"
+    ports:
+      - 27017:27017
+    volumes:
+      - mongodbdata:/data/db
+volumes:
+  mongodbdata:
+    driver: local

@@ -1,0 +1,19 @@
+{
+  "name": "backend-scripts",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/runServer.js",
+  "type": "module",
+  "scripts": {
+    "start": "nodemon src/runServer.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.23.0",
+  "dependencies": {
+    "express": "^5.2.1",
+    "nodemon": "^3.1.11"
+  }
+}
