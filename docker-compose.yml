@@ -1,31 +1,61 @@
 services:
   mongo:
-    image: mongo:6
+    image: mongo:8.0
+    container_name: mongo-db-container
     restart: unless-stopped
-  volumes:
-    - mongo-data:/data/db
-  ports:
-    - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: "${MONGO_INITDB_ROOT_USERNAME}"
+      MONGO_INITDB_ROOT_PASSWORD: "${MONGO_INITDB_ROOT_PASSWORD}"
+    ports:
+      - 27017:27017
+    volumes:
+      - mongo-db-data:/data/db
+    networks:
+    - quickcomm-db-net
 
-backend:
-  build: ./backend
-  environment:
-    - MONGO_URI=mongodb://mongo:27017/beeyond
-    - JWT_SECRET=supersecret
-  depends_on:
-    - mongo
-  ports:
-    - "4000:4000"
-  restart: unless-stopped
 
-frontend:
-  build: ./frontend
-  ports:
-    - "80:80"
-  depends_on:
-    - backend
-  restart: unless-stopped
-  
+  backend:
+    build: ./backend
+    container_name: quick-comm-backend
+    environment:
+      # - MONGO_URI=mongodb://mongo:27017/quick-commerce-db           # Database quick-commerce-db will auto-create
+      - MONGO_URI=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongo:27017/quick-commerce-db?authSource=admin
+    depends_on:
+      - mongo
+    ports:
+      - "4000:4000"
+    networks:
+    - quickcomm-db-net
+    
+
+  frontend:
+    build: ./frontend
+    container_name: quick-comm-frontend
+    ports:
+      - "3000:80"
+    networks:
+    - quickcomm-db-net    # frontend available at http://localhost:3000
+
 volumes:
-  mongo-data:
+  mongo-db-data:
     driver: local
+
+networks:
+  quickcomm-db-net:
+
+
+
+# commands to run for backend & frontend dockerfiles build
+# cd ..
+# docker-compose up -d
+
+# only want to build & run Mongo for now
+# docker-compose up -d mongo
+
+
+# want to start Mongo and see logs
+# docker-compose up mongo
+
+# Build backend + frontend later
+# docker-compose up -d backend
+# docker-compose up -d frontend
