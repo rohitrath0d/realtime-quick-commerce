@@ -58,7 +58,7 @@ app.set('io', socketConnection);
 // connecting db
 connectDB()
   .then(() => {
-    console.log("Connected to Mongodb");
+    console.log("Connected to Mongodb main server embedd import check..");
 }).catch((err) => {
   console.error('Error connecting to the mongo db: ', err.message);
   process.exit(1);
