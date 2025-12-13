@@ -4,6 +4,8 @@ import dotenv from 'dotenv';
 import { Server } from 'socket.io';
 import cors from 'cors';
 import { connectDB } from './connections/db/db-init.js';
+import { errorHandler } from "./middlewares/errorHandler.js";
+import authRoutes from "./routes/auth-routes.js"
 
 dotenv.config();
 
@@ -30,6 +32,16 @@ app.get('/health', (req, res) => res.send({
   time: new Date().toISOString()
 }));
 
+// routes
+app.use("/api/auth", authRoutes);
+// app.use("/api/orders", orderRoutes);
+
+
+// error handler 
+app.use(errorHandler);
+
+
+
 // init socket connection
 socketConnection.on('connection', (socket) => {
   // console.log('New user connected');
@@ -55,16 +67,33 @@ socketConnection.on('connection', (socket) => {
 // attach io so routes/controllers can emit
 app.set('io', socketConnection);
 
-// connecting db
-connectDB()
-  .then(() => {
-    console.log("Connected to Mongodb main server embedd import check..");
-}).catch((err) => {
-  console.error('Error connecting to the mongo db: ', err.message);
-  process.exit(1);
-});
+// // connecting db
+// connectDB();
+// //   .then(() => {
+// //     console.log("Connected to Mongodb main server embedd import check..");
+// // }).catch((err) => {
+// //   console.error('Error connecting to the mongo db: ', err.message);
+// //   process.exit(1);
+// // });
 
-// app.listen(port, ()=> {      // app -> server (for socket connection)
-httpServer.listen(port, () => {
-  console.log(`Server is running on port: http://localhost:${port}`)
-});
+// // app.listen(port, ()=> {      // app -> server (for socket connection)
+// httpServer.listen(port, () => {
+//   console.log(`Server is running on port: http://localhost:${port}`)
+// });
+
+// START SERVER ONLY AFTER DB CONNECTS
+const startServer = async () => {
+  try {
+    await connectDB();   // BLOCKS until DB is connected
+    console.log("MongoDB connected successfully");
+
+    httpServer.listen(port, () => {
+      console.log(`Server is running on port: http://localhost:${port}`);
+    });
+  } catch (err) {
+    console.error("Failed to start server:", err.message);
+    process.exit(1);
+  }
+};
+
+startServer();

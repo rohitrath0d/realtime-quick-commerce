@@ -30,13 +30,22 @@ const UserSchema = new mongoose.Schema(
 );
 
 // Hash password
+// What this does:
+// Runs before saving a user (pre("save")).
+// Checks if the password field is modified (important so it doesn’t rehash on updates where password isn’t changed).
+// Generates a salt and hashes the password.
+// Saves the hashed password in the database.
+// This is the recommended way, because it keeps hashing logic centralized in the schema.
 UserSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
-  next();
+  // next();
 });
 
+// What this does:
+// Compares a plaintext password with the hashed password stored in DB.
+// Works perfectly in your loginController:
 UserSchema.methods.comparePassword = function (candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password);
 };
