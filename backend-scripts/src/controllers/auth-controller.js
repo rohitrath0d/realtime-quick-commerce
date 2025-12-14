@@ -98,3 +98,26 @@ export const loginController = async (req, res) => {
     });
   }
 };
+
+
+export const getUserProfileController = async (req, res, next) => {
+  try {
+    // req.user comes from protect middleware
+    const userId = req.user.id;
+
+    const user = await User.findById(userId).select("-password");
+    if (!user) {
+      const err = new Error("User not found");
+      err.statusCode = 404;
+      throw err;
+    }
+
+    res.status(200).json({
+      success: true,
+      user,
+    });
+
+  } catch (err) {
+    next(err);
+  }
+};
