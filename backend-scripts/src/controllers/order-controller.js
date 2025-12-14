@@ -63,7 +63,8 @@ export const getMyOrders = async (req, res) => {
     const orders = await Order.find({ customer: req.user.id })
       .sort({ createdAt: -1 })
       .populate("store", "name")
-      .populate("assignedTo", "name");
+      // .populate("assignedTo", "name");
+      .populate("deliveryPartner", "name");
 
     res.status(200).json({
       success: true,
@@ -85,7 +86,8 @@ export const getOrderById = async (req, res) => {
     const order = await Order.findById(req.params.id)
       .populate("customer", "name email")
       .populate("store", "name")
-      .populate("assignedTo", "name");
+      // .populate("assignedTo", "name");
+      .populate("deliveryPartner", "name");
 
     if (!order) {
       return res.status(404).json({
@@ -99,7 +101,8 @@ export const getOrderById = async (req, res) => {
     if (
       (user.role === "CUSTOMER" && order.customer._id.toString() !== user.id) ||
       (user.role === "STORE" && order.store._id.toString() !== user.storeId) ||
-      (user.role === "DELIVERY" && order.assignedTo?._id.toString() !== user.id)
+      // (user.role === "DELIVERY" && order.assignedTo?._id.toString() !== user.id)
+      (user.role === "DELIVERY" && order.deliveryPartner?._id.toString() !== user.id )
     ) {
       return res.status(403).json({
         success: false,

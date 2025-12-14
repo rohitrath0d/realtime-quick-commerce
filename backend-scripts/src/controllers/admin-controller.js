@@ -19,7 +19,7 @@ export const listOrders = async (req, res) => {
       if (!allowedStatuses.includes(status)) {
         throw new Error("Invalid order status filter");
       }
-      
+
       query.status = status;
     }
 
@@ -43,9 +43,24 @@ export const listOrders = async (req, res) => {
   }
 };
 
+// Admin: Delete any store
+export const adminDeleteStore = async (req, res) => {
+  try {
+    const store = await Store.findById(req.params.id);
+    if (!store) return res.status(404).json({ success: false, message: "Store not found" });
+
+    await store.deleteOne();
+    res.status(200).json({ success: true, message: "Store deleted by admin" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Error deleting store" });
+  }
+};
+
+
 export const listDeliveryPartners = async (req, res) => {
   try {
-    const partners = await User.find({ role: 'partner' })
+    const partners = await User.find({ role: 'DELIVERY' })
       .select('-password')
       .limit(200);
 
@@ -69,18 +84,18 @@ export const liveStats = async (req, res) => {
     // const placed = await Order.countDocuments({ status: 'PLACED' });
     // const accepted = await Order.countDocuments({ status: 'ACCEPTED' });
 
-    const [totalOrders, placed, accepted] = await Promise.all([
+    const [totalOrders, placed, packed, delivered] = await Promise.all([
       Order.countDocuments(),
       Order.countDocuments({ status: "PLACED" }),
-      Order.countDocuments({ status: "ACCEPTED" }),
+      Order.countDocuments({ status: "PACKED" }),
+      Order.countDocuments({ status: "DELIVERED" }),
     ]);
 
     return res.status(200).json({
-      count: partners.length,
-      data: partners,
       totalOrders,
       placed,
-      accepted
+      packed, 
+      delivered
     });
   } catch (err) {
     console.error(err);

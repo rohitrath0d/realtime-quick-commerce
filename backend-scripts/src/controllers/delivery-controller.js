@@ -6,7 +6,11 @@ import { validateStatusTransition } from "../utils/orderWorkflow.js";
 // List unassigned orders
 export const getUnassignedDeliveries = async (req, res) => {
   try {
-    const orders = await Order.find({ assignedTo: null, status: "PLACED" })
+    // const orders = await Order.find({ assignedTo: null, status: "PLACED" })
+    // const orders = await Order.find({ deliveryPartner: null, status: "PLACED" })        // check if placed or packed
+
+    // Let riders see all orders that are not yet assigned, regardless of status:
+    const orders = await Order.find({ deliveryPartner: null, status: { $in: ["PLACED", "STORE_ACCEPTED", "PACKING", "PACKED"] } })      // $in allows them to see all orders in progress, not just PACKED.
       .sort({ createdAt: 1 })
       .populate("store", "name")
       .populate("customer", "name");
@@ -28,7 +32,8 @@ export const getUnassignedDeliveries = async (req, res) => {
 export const getMyAssignedOrders = async (req, res) => {
   try {
     const orders = await Order.find({
-      assignedTo: req.user.id,
+      // assignedTo: req.user.id,
+      deliveryPartner: req.user.id,
       // status: { $ne: "DELIVERED" },
       status: { $nin: ["DELIVERED", "CANCELLED"] },
     })
@@ -62,15 +67,19 @@ export const acceptOrder = async (req, res) => {
 
     // Attempt to lock and assign the order atomically
     const updateOrder = await Order.findOneAndUpdate(
+      // Don’t change the status here.
+      // Accepting an order does not mean they can pick it up yet.
       {
         _id: orderId,
-        assignedTo: null,
-        status: "PACKED",               // Delivery can only accept PACKED orders.
+        // assignedTo: null,
+        deliveryPartner: null,
+        // status: "PACKED",               // Delivery can only accept PACKED orders.   // only allow pickup if packed
       }, // only unassigned orders
       {
-        assignedTo: partnerId,
+        // assignedTo: partnerId,
+        deliveryPartner: partnerId,
         // status: "ACCEPTED",
-        status: "PICKED_UP",
+        // status: "PICKED_UP",
         lockedAt: new Date(),
         updatedAt: new Date()
       },
@@ -78,7 +87,7 @@ export const acceptOrder = async (req, res) => {
     );
 
     if (!updateOrder) {
-      throw new Error("Order already assigned to another delivery partner..");
+      throw new Error("Order is no longer available for delivery");
     }
 
     // Emit socket events to update customer and partner/admin lists
@@ -107,23 +116,36 @@ export const acceptOrder = async (req, res) => {
 // Update order status
 export const updateOrderStatus = async (req, res) => {
   try {
-    const partnerId = req.params.id;
+    // const partnerId = req.params.id;   // this id is not a partner id
+    const orderId = req.params.id;   // this id is not a partner id
     const userId = req.user.id;
     const { status } = req.body;
 
-    const order = await Order.findById(partnerId);
+    const order = await Order.findById(orderId);
 
     if (!order) throw new Error("Order not found");
 
-    if (!order.assignedTo || order.assignedTo.toString() !== userId) {
+    // if (!order.assignedTo || order.assignedTo.toString() !== userId) {
+    if (!order.deliveryPartner || order.deliveryPartner.toString() !== userId) {
       throw new Error("You are not assigned to this order");
     }
 
-    // 
+    // Enforce that the rider can only change status to PICKED_UP if the order is PACKED:
+    // They can still view and accept PLACED orders.
+    // They just can’t mark them as PICKED_UP prematurely.
+    // Riders see all available orders.
+    // They can claim any unassigned order.
+    // They cannot pick up until the store has packed it.
+    if (status === "PICKED_UP" && order.status !== "PACKED") {
+      throw new Error("Order cannot be picked up until it is packed by the store");
+    }
+
+    // validation of workflow match
     validateStatusTransition(order.status, status, req.user.role);
 
     order.status = status;
     order.updatedAt = new Date();
+    order.updatedBy = req.user.id;
     await order.save();
 
     const io = req.app.get('io');

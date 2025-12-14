@@ -7,8 +7,11 @@ import { connectDB } from './connections/db/db-init.js';
 import { errorHandler } from "./middlewares/errorHandler.js";
 import authRoutes from "./routes/auth-routes.js";
 import orderRoutes from './routes/order-routes.js';
-// import productRoutes from './routes/product-routes.js';
+import productRoutes from './routes/product-routes.js';
 // import deliveryRoutes from './routes/delivery-routes.js'
+import adminRoutes from './routes/admin-routes.js'
+
+
 
 dotenv.config();
 
@@ -38,6 +41,8 @@ app.get('/health', (req, res) => res.send({
 // routes
 app.use("/api/auth", authRoutes);
 app.use("/api/orders", orderRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/product", productRoutes);
 
 
 // error handler 

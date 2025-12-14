@@ -54,13 +54,25 @@ const OrderSchema = new mongoose.Schema(
     },
 
     // Locking mechanism (delivery partner)
-    isLocked: { type: Boolean, default: false },
+    // isLocked: { type: Boolean, default: false },
     lockedAt: { type: Date, default: null },
+
+    // Track who last updated the order
+    updatedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
   },
   { timestamps: true }
 );
 
 // Compound index for delivery matching
-OrderSchema.index({ status: 1, isLocked: 1, createdAt: -1 });
+OrderSchema.index({
+  status: 1,
+  // isLocked: 1, 
+  deliveryPartner: 1,
+  createdAt: -1
+});
 
 export const Order = mongoose.model("Order", OrderSchema);
