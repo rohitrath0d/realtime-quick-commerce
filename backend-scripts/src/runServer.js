@@ -34,12 +34,11 @@ app.get('/health', (req, res) => res.send({
 
 // routes
 app.use("/api/auth", authRoutes);
-// app.use("/api/orders", orderRoutes);
+app.use("/api/orders", orderRoutes);
 
 
 // error handler 
 app.use(errorHandler);
-
 
 
 // init socket connection

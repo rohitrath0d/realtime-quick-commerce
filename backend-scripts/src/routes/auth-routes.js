@@ -8,4 +8,4 @@ router.post("/register", registerController);
 router.post("/login", loginController);
 router.get("/profile", protectAuth, getUserProfileController );
 
-export default router;  
+export default router;
