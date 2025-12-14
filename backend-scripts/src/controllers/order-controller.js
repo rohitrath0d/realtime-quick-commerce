@@ -3,12 +3,13 @@ import { Order } from "../models/order.js"
 import { Product } from "../models/product.js";
 
 
-export const placeOrder = catchAsync(async (req, res) => {
+export const placeOrder = async (req, res) => {
   try {
     const { items } = req.body;
+    if (!items || !items.length) return res.status(400).json({ error: 'No items provided' });
 
     const store = await Store.findOne({ isActive: true });
-    if (!store) throw new AppError("No active store available", 400);
+    if (!store) throw new Error("No active store available");
 
     let total = 0;
     const orderItems = [];
@@ -16,7 +17,7 @@ export const placeOrder = catchAsync(async (req, res) => {
     for (const item of items) {
       const product = await Product.findById(item.productId);
       if (!product || !product.isActive) {
-        throw new AppError("Invalid or inactive product", 400);
+        throw new Error("Invalid or inactive product");
       }
 
       total += product.price * item.quantity;
@@ -36,21 +37,28 @@ export const placeOrder = catchAsync(async (req, res) => {
       status: "PLACED",
     });
 
+    // emit socket event to partners & admin
+    const io = req.app.get('io');
+    if (io) {
+      io.emit('order_created', { orderId: order._id, status: order.status, total: order.total });
+      io.emit('order_list_update', order); // helps partners/admin refresh lists
+    }
+
     res.status(201).json({
       success: true,
       data: order,
     });
   } catch (error) {
-    console.error(err);
+    console.error(error);
     res.status(500).json({
       success: false,
       message: "Error in Place order API",
     });
   }
-}); 
+};
 
 
-export const getMyOrders = catchAsync(async (req, res) => {
+export const getMyOrders = async (req, res) => {
   try {
     const orders = await Order.find({ customer: req.user.id })
       .sort({ createdAt: -1 })
@@ -69,10 +77,10 @@ export const getMyOrders = catchAsync(async (req, res) => {
       message: "Error in Get My Orders API",
     });
   }
-});
+};
 
 
-export const getOrderById = catchAsync(async (req, res) => {
+export const getOrderById = async (req, res) => {
   try {
     const order = await Order.findById(req.params.id)
       .populate("customer", "name email")
@@ -110,4 +118,4 @@ export const getOrderById = catchAsync(async (req, res) => {
       message: "Error in Get Order by ID API",
     });
   }
-});
+};

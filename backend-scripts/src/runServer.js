@@ -5,7 +5,10 @@ import { Server } from 'socket.io';
 import cors from 'cors';
 import { connectDB } from './connections/db/db-init.js';
 import { errorHandler } from "./middlewares/errorHandler.js";
-import authRoutes from "./routes/auth-routes.js"
+import authRoutes from "./routes/auth-routes.js";
+import orderRoutes from './routes/order-routes.js';
+// import productRoutes from './routes/product-routes.js';
+// import deliveryRoutes from './routes/delivery-routes.js'
 
 dotenv.config();
 
@@ -46,20 +49,9 @@ socketConnection.on('connection', (socket) => {
   // console.log('New user connected');
   console.log(`New user connected: ${socket.id}`);     // Logging socket ID (helps debugging)
 
-  socket.emit('newMessage', {
-    from: 'Server',
-    text: 'Welcome',
-    createdAt: Date.now()
-  });
+  socket.on('join_room', room => socket.join(room));
 
-  socket.on('createMessage', (message) => {
-    console.log('New message:', message);
-    socketConnection.emit('newMessage', message)    // send to everyone
-  });
-
-  socket.on('disconnect', () => {
-    console.log(`User disconnected: ${socket.id}`);
-  });
+  socket.on('disconnect', () => console.log('socket disconnected', socket.id));
 
 });
 
