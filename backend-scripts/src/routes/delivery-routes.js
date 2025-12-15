@@ -1,6 +1,7 @@
 import express from 'express';
 import { protectAuth } from '../middlewares/auth-middleware.js'
 import { acceptOrder, getMyAssignedOrders, getUnassignedDeliveries, updateOrderStatus } from '../controllers/delivery-controller.js';
+import { authorizeRole } from '../middlewares/role-middleware.js';
 
 const router = express.Router();
 
@@ -11,7 +12,7 @@ const router = express.Router();
 
 
 router.get(
-  "/delivery/orders/unassigned",
+  "/orders/unassigned",
   protectAuth,
   authorizeRole("DELIVERY"),
   getUnassignedDeliveries
@@ -37,8 +38,5 @@ router.get(
   authorizeRole("DELIVERY"),
   getMyAssignedOrders
 );
-
-
-
 
 export default router;  

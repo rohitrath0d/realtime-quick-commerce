@@ -23,6 +23,9 @@ export const protectAuth = (req, res, next) => {
 
     // Attach decoded user info to request
     req.user = decoded; // { id, role }
+   
+    console.log("AUTH USER WITH ROLE AND ID:", req.user);
+
 
     next();
   } catch (err) {

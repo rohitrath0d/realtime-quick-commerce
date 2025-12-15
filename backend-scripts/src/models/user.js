@@ -31,7 +31,7 @@ const UserSchema = new mongoose.Schema(
 
 // Hash password
 // What this does:
-// Runs before saving a user (pre("save")).
+// Runs before saving a user (pre("sa ve")).
 // Checks if the password field is modified (important so it doesn’t rehash on updates where password isn’t changed).
 // Generates a salt and hashes the password.
 // Saves the hashed password in the database.

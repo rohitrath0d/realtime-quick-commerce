@@ -5,29 +5,38 @@ import { adminDeleteStore, listDeliveryPartners, listOrders, liveStats } from '.
 
 const router = express.Router();
 
+// List all orders (optional query ?status=PLACED)
 router.get(
-  "/admin/orders",
+  "/orders",
   protectAuth,
   authorizeRole("ADMIN"),
   // getAllOrders
   listOrders
 );
 
+// List all delivery partners
 router.get(
-  "/admin/orders",
+  "/delivery-partners",
   protectAuth,
   authorizeRole("ADMIN"),
   listDeliveryPartners
 );
 
+// Live stats: totalOrders, placed, packed, delivered
 router.get(
-  "/admin/orders",
+  "/live-stats",
   protectAuth,
   authorizeRole("ADMIN"),
   liveStats
 );
 
-router.delete("/stores/:id", adminDeleteStore);
+// Admin delete any store
+router.delete(
+  "/stores/:id",
+  protectAuth,
+  authorizeRole("ADMIN"),
+  adminDeleteStore
+);
 
 
 export default router;

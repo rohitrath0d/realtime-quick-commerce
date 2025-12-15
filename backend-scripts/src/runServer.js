@@ -8,8 +8,9 @@ import { errorHandler } from "./middlewares/errorHandler.js";
 import authRoutes from "./routes/auth-routes.js";
 import orderRoutes from './routes/order-routes.js';
 import productRoutes from './routes/product-routes.js';
-// import deliveryRoutes from './routes/delivery-routes.js'
+import deliveryRoutes from './routes/delivery-routes.js'
 import adminRoutes from './routes/admin-routes.js'
+import storeRoutes from './routes/store-routes.js'
 
 
 
@@ -23,7 +24,8 @@ const httpServer = http.createServer(app);
 // const socketConnection= socketIO(httpServer)
 const socketConnection = new Server(httpServer, {
   cors: {
-    origin: '*'  // for dev env only
+    origin: '*',  // for dev env only
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS']
   }
 })
 
@@ -43,6 +45,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/product", productRoutes);
+app.use("/api/store", storeRoutes);
+app.use("/api/delivery", deliveryRoutes);
 
 
 // error handler 
@@ -64,32 +68,32 @@ socketConnection.on('connection', (socket) => {
 app.set('io', socketConnection);
 
 // // connecting db
-// connectDB();
-// //   .then(() => {
-// //     console.log("Connected to Mongodb main server embedd import check..");
-// // }).catch((err) => {
-// //   console.error('Error connecting to the mongo db: ', err.message);
-// //   process.exit(1);
-// // });
+connectDB()
+  .then(() => {
+    console.log("Connected to Mongodb main server embedd import check..");
+  }).catch((err) => {
+    console.error('Error connecting to the mongo db: ', err.message);
+    process.exit(1);
+  });
 
 // // app.listen(port, ()=> {      // app -> server (for socket connection)
-// httpServer.listen(port, () => {
-//   console.log(`Server is running on port: http://localhost:${port}`)
-// });
+httpServer.listen(port, () => {
+  console.log(`Server is running on port: http://localhost:${port}`)
+});
 
-// START SERVER ONLY AFTER DB CONNECTS
-const startServer = async () => {
-  try {
-    await connectDB();   // BLOCKS until DB is connected
-    console.log("MongoDB connected successfully");
+// // START SERVER ONLY AFTER DB CONNECTS
+// const startServer = async () => {
+//   try {
+//     await connectDB();   // BLOCKS until DB is connected
+//     console.log("MongoDB connected successfully");
 
-    httpServer.listen(port, () => {
-      console.log(`Server is running on port: http://localhost:${port}`);
-    });
-  } catch (err) {
-    console.error("Failed to start server:", err.message);
-    process.exit(1);
-  }
-};
+//     httpServer.listen(port, () => {
+//       console.log(`Server is running on port: http://localhost:${port}`);
+//     });
+//   } catch (err) {
+//     console.error("Failed to start server:", err.message);
+//     process.exit(1);
+//   }
+// };
 
-startServer();
+// startServer();

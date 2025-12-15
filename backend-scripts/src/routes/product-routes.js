@@ -7,6 +7,8 @@ const router = express.Router();
 
 router.post("/", protectAuth, authorizeRole(['STORE', 'ADMIN']), createProduct);   // create product
 router.get("/", protectAuth, authorizeRole(['STORE', 'ADMIN']), getProducts);      //  list products
+// Public product listing for customers
+router.get("/public", getProducts);
 router.get("/:id", protectAuth, authorizeRole(['STORE', 'ADMIN']), getProductById); // get product by ID
 router.put("/:id", protectAuth, authorizeRole(['STORE', 'ADMIN']), updateProduct);  // update product
 router.delete("/:id", protectAuth, authorizeRole(['STORE', 'ADMIN']), deleteProduct); // delete product

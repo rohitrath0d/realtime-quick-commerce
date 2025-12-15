@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import { Order } from "../models/order.js";
-import { validateStatusTransition } from "../utils/orderWorkflow.js";
+import { validateStatusTransition } from "../utils/orderWorkfllow.js";
 
 
 // List unassigned orders

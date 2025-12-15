@@ -1,6 +1,6 @@
 import { Store } from "../models/store.js";
 import { Order } from "../models/order.js";
-import { validateStatusTransition } from '../utils/orderWorkflow.js';
+import { validateStatusTransition } from '../utils/orderWorkfllow.js';
 
 
 // List orders for this store (PLACED → PACKED)
