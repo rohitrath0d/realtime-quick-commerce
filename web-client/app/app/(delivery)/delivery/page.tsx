@@ -139,15 +139,22 @@ const DeliveryDashboard = () => {
 
   const getNextStatus = (currentStatus: OrderStatus): OrderStatus | null => {
     const flow: Partial<Record<OrderStatus, OrderStatus>> = {
+      PLACED: 'PICKED_UP',
+      STORE_ACCEPTED: 'PICKED_UP',
+      PACKING: 'PICKED_UP',
       PACKED: 'PICKED_UP',
       PICKED_UP: 'ON_THE_WAY',
       ON_THE_WAY: 'DELIVERED',
     };
+    console.log('Status flow check:', currentStatus, '->', flow[currentStatus]);
     return flow[currentStatus] || null;
   };
 
   const getActionLabel = (status: OrderStatus): string => {
     const labels: Partial<Record<OrderStatus, string>> = {
+      PLACED: 'Mark as Picked Up',
+      STORE_ACCEPTED: 'Mark as Picked Up',
+      PACKING: 'Mark as Picked Up',
       PACKED: 'Mark as Picked Up',
       PICKED_UP: 'Start Delivery',
       ON_THE_WAY: 'Mark as Delivered',
@@ -275,21 +282,21 @@ const DeliveryDashboard = () => {
             >
               <div className="flex items-start justify-between mb-4">
                 <div>
-                    <span className="text-sm text-muted-foreground">#{order._id}</span>
-                    <h3 className="font-semibold text-foreground">{typeof order.customer === 'string' ? 'Customer' : order.customer?.name || 'Customer'}</h3>
+                  <span className="text-sm text-muted-foreground">#{order._id}</span>
+                  <h3 className="font-semibold text-foreground">{typeof order.customer === 'string' ? 'Customer' : order.customer?.name || 'Customer'}</h3>
                 </div>
                 <span className="text-xl font-bold text-primary">${order.total.toFixed(2)}</span>
               </div>
 
-                <div className="flex items-start gap-2 mb-4 text-sm text-muted-foreground">
+              <div className="flex items-start gap-2 mb-4 text-sm text-muted-foreground">
                 <MapPin className="w-4 h-4 mt-0.5 shrink-0 text-accent" />
                 <span>{typeof order.store === 'string' ? 'Store' : order.store?.name || 'Store'}</span>
               </div>
 
-                <div className="flex items-center gap-2 mb-4 text-sm">
-                  <Package className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-muted-foreground">{order.items.length} items</span>
-                </div>
+              <div className="flex items-center gap-2 mb-4 text-sm">
+                <Package className="w-4 h-4 text-muted-foreground" />
+                <span className="text-muted-foreground">{order.items.length} items</span>
+              </div>
 
               <Button
                 variant="accent"
@@ -327,17 +334,17 @@ const DeliveryDashboard = () => {
                   <span className="text-xl font-bold text-primary">${order.total.toFixed(2)}</span>
                 </div>
 
-                    <div className="flex items-start gap-2 mb-4 text-sm text-muted-foreground">
-                      <MapPin className="w-4 h-4 mt-0.5 shrink-0 text-accent" />
-                      <span>{typeof order.store === 'string' ? 'Store' : order.store?.name || 'Store'}</span>
-                    </div>
+                <div className="flex items-start gap-2 mb-4 text-sm text-muted-foreground">
+                  <MapPin className="w-4 h-4 mt-0.5 shrink-0 text-accent" />
+                  <span>{typeof order.store === 'string' ? 'Store' : order.store?.name || 'Store'}</span>
+                </div>
 
-                    <div className="flex items-center gap-2 mb-4 text-sm">
-                      <Package className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-foreground">
-                        {order.items.map((i: { name: string; qty: number }) => `${i.qty}x ${i.name}`).join(", ")}
-                      </span>
-                    </div>
+                <div className="flex items-center gap-2 mb-4 text-sm">
+                  <Package className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-foreground">
+                    {order.items.map((i: { name: string; qty: number }) => `${i.qty}x ${i.name}`).join(", ")}
+                  </span>
+                </div>
 
                 <div className="flex gap-2">
                   <Button variant="outline" size="sm" className="flex-1 gap-2">

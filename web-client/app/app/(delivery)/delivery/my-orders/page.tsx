@@ -56,6 +56,9 @@ const MyOrdersPage = () => {
 
   const getNextStatus = (currentStatus: OrderStatus): OrderStatus | null => {
     const flow: Partial<Record<OrderStatus, OrderStatus>> = {
+      PLACED: 'PICKED_UP',
+      STORE_ACCEPTED: 'PICKED_UP',
+      PACKING: 'PICKED_UP',
       PACKED: 'PICKED_UP',
       PICKED_UP: 'ON_THE_WAY',
       ON_THE_WAY: 'DELIVERED',
@@ -65,6 +68,9 @@ const MyOrdersPage = () => {
 
   const getActionLabel = (status: OrderStatus): string => {
     const labels: Partial<Record<OrderStatus, string>> = {
+      PLACED: 'Mark as Picked Up',
+      STORE_ACCEPTED: 'Mark as Picked Up',
+      PACKING: 'Mark as Picked Up',
       PACKED: 'Mark as Picked Up',
       PICKED_UP: 'Start Delivery',
       ON_THE_WAY: 'Mark as Delivered',
