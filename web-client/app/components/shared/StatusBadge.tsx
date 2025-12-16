@@ -44,7 +44,10 @@ const statusConfig: Record<StatusType, { label: string; className: string }> = {
 };
 
 const StatusBadge = ({ status, className, pulse = false }: StatusBadgeProps) => {
-  const config = statusConfig[status];
+  const config = statusConfig[status] ?? {
+    label: status ?? "UNKNOWN",
+    className: "bg-gray-100 text-gray-700 border-gray-300",
+  };
 
   return (
     <span

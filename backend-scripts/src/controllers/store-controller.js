@@ -3,7 +3,6 @@ import { Order } from "../models/order.js";
 import { validateStatusTransition } from '../utils/orderWorkfllow.js';
 
 
-
 // GET /api/store
 // returns { exists: true, store: {...} } or { exists: false }
 export const getStore = async (req, res) => {

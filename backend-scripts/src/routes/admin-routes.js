@@ -1,7 +1,7 @@
 import express from 'express';
 import { protectAuth } from '../middlewares/auth-middleware.js'
 import { authorizeRole } from '../middlewares/role-middleware.js';
-import { adminDeleteStore, listDeliveryPartners, listOrders, liveStats } from '../controllers/admin-controller.js'
+import { adminDeleteStore, listAllStores, listDeliveryPartners, listOrders, liveStats } from '../controllers/admin-controller.js'
 
 const router = express.Router();
 
@@ -29,6 +29,15 @@ router.get(
   authorizeRole("ADMIN"),
   liveStats
 );
+
+// List all stores
+router.get(
+  "/stores",
+  protectAuth,
+  authorizeRole("ADMIN"),
+  listAllStores
+);
+
 
 // Admin delete any store
 router.delete(

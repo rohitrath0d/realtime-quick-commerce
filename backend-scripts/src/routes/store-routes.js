@@ -1,12 +1,7 @@
 import express from 'express';
 import { protectAuth } from '../middlewares/auth-middleware.js'
 import { authorizeRole } from '../middlewares/role-middleware.js';
-import { acceptOrder, createStore, deleteStore, getStore, getStoreStats, listStoreOrders, markPacked, startPacking } from '../controllers/store-controller.js';
-import {
-  acceptOrder,
-  // updateOrderStatus 
-} from '../controllers/delivery-controller.js';
-
+import { acceptOrder, createStore, deleteStore, getStore, getStoreStats, listAllStoreOrders, listStoreOrders, markPacked, startPacking } from '../controllers/store-controller.js';
 
 const router = express.Router();
 

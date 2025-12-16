@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "nodemon src/runServer.js",
-    "start": "nodemon src/runServer.js",
+    "start": "node src/runServer.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

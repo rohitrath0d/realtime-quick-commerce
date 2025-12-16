@@ -1,4 +1,6 @@
+import mongoose from 'mongoose';
 import { Product } from '../models/product.js'
+import { Store } from '../models/store.js';
 
 // Create a new product
 export const createProduct = async (req, res) => {
@@ -9,7 +11,18 @@ export const createProduct = async (req, res) => {
       throw new Error("Name and price are required", 400);
     }
 
-    const storeId = req.user.storeId; // Assuming store's user has storeId linked
+    // const storeId = req.user.storeId; // Assuming store's user has storeId linked\
+    const storeId = await Store.findOne({
+      owner: new mongoose.Types.ObjectId(req.user.id)
+    });
+    console.log("req.user:", req.user);
+    if (!storeId) {
+      const error = new Error("Store ID is required");
+      error.statusCode = 400;
+      throw error;
+    }
+    console.log(storeId, "store id exists when creating product");
+
 
     const product = await Product.create({
       name,

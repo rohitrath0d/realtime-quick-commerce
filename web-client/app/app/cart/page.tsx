@@ -220,10 +220,10 @@ const CartPage = () => {
             >
               <div className="relative w-20 h-20 rounded-lg overflow-hidden bg-muted flex-shrink-0">
                 {item.imageUrl ? (
-                  <Image
+                  <img
                     src={item.imageUrl}
                     alt={item.name}
-                    fill
+                    fill="true"
                     className="object-cover"
                   />
                 ) : (
