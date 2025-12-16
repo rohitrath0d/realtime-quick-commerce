@@ -20,8 +20,8 @@ const StoreLayout = ({ children }: StoreLayoutProps) => {
   const { user, logout, token } = useAuth();
 
   useEffect(() => {
-    const role = user?.role ? String(user.role).trim().toLowerCase() : undefined;
-    if (role === 'STORE' && token) {
+    const role = user?.role ? String(user.role).trim().toLocaleLowerCase() : undefined;
+    if (role === 'store' && token) {
       connectSocket(token);
     }
   }, [user?.role, token]);
@@ -70,7 +70,7 @@ const StoreLayout = ({ children }: StoreLayoutProps) => {
       </header>
 
       <main>
-        <ProtectedRoute allowedRoles={["STORE"]}>{children}</ProtectedRoute>
+        <ProtectedRoute allowedRoles={["store"]}>{children}</ProtectedRoute>
       </main>
     </div>
   );

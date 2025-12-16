@@ -16,14 +16,14 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
 
   useEffect(() => {
     const role = user?.role ? String(user.role).trim().toLowerCase() : undefined;
-    if (role === 'ADMIN' && token) {
+    if (role === 'admin' && token) {
       connectSocket(token);
     }
   }, [user?.role, token]);
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main className="pt-20"><ProtectedRoute allowedRoles={["ADMIN"]}>{children}</ProtectedRoute></main>
+      <main className="pt-20"><ProtectedRoute allowedRoles={["admin"]}>{children}</ProtectedRoute></main>
     </div>
   );
 };

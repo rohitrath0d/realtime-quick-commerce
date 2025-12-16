@@ -35,10 +35,30 @@ export const createProduct = async (req, res) => {
 
 export const getProducts = async (req, res) => {
   try {
+    let query = { isActive: true };
+
+    // If STORE user, only show their store's products
+    if (req.user && req.user.role === 'STORE') {
+      const store = await Store.findOne({ owner: req.user.id });
+      if (store) {
+        query.store = store._id;
+      }
+    }
     const products = await Product.find({ isActive: true });
 
+    // cant direcly throw 404 error, because if no product it will throw error on the frontend - indicating error in porduct listing api, and no fallback for it.
+    // hence 200 code is happy case for them- to be able to not be reactive to error, and show no products available message on the frontend.
+    // if (!products || products.length === 0) {
+    //   throw new Error("No products available", 404);
+    // }
+
     if (!products || products.length === 0) {
-      throw new Error("No products available", 404);
+      // Return a message and indicate that the user can create products
+      return res.status(200).json({
+        success: true,
+        message: "No products available. You can create a product.",
+        data: [],
+      });
     }
 
     res.status(200).json({
@@ -84,13 +104,13 @@ export const updateProduct = async (req, res) => {
   try {
     const { name, description, price, imageUrl, isActive } = req.body;
 
-    // Only STORE or ADMIN can update
-    if (!["STORE", "ADMIN"].includes(req.user.role)) {
-      return res.status(403).json({
-        success: false,
-        message: "You are not authorized to update products",
-      });
-    }
+    // // Only STORE or ADMIN can update
+    // if (!["STORE", "ADMIN"].includes(req.user.role)) {
+    //   return res.status(403).json({
+    //     success: false,
+    //     message: "You are not authorized to update products",
+    //   });
+    // }
 
     const product = await Product.findById(req.params.id);
 
@@ -100,6 +120,18 @@ export const updateProduct = async (req, res) => {
         message: "Product not found",
       });
     }
+
+    // For STORE users, verify they own this product's store
+    if (req.user.role === 'STORE') {
+      const store = await Store.findOne({ owner: req.user.id });
+      if (!store || product.store.toString() !== store._id.toString()) {
+        return res.status(403).json({
+          success: false,
+          message: "You can only update your own store's products",
+        });
+      }
+    }
+
 
     product.name = name ?? product.name;
     product.description = description ?? product.description;
@@ -124,13 +156,13 @@ export const updateProduct = async (req, res) => {
 
 export const deleteProduct = async (req, res) => {
   try {
-    // Only STORE or ADMIN can delete
-    if (!["STORE", "ADMIN"].includes(req.user.role)) {
-      return res.status(403).json({
-        success: false,
-        message: "You are not authorized to delete products",
-      });
-    }
+    // // Only STORE or ADMIN can delete
+    // if (!["STORE", "ADMIN"].includes(req.user.role)) {
+    //   return res.status(403).json({
+    //     success: false,
+    //     message: "You are not authorized to delete products",
+    //   });
+    // }
 
     const product = await Product.findById(req.params.id);
 
@@ -139,6 +171,17 @@ export const deleteProduct = async (req, res) => {
         success: false,
         message: "Product not found",
       });
+    }
+
+    // For STORE users, verify they own this product's store
+    if (req.user.role === 'STORE') {
+      const store = await Store.findOne({ owner: req.user.id });
+      if (!store || product.store.toString() !== store._id.toString()) {
+        return res.status(403).json({
+          success: false,
+          message: "You can only delete your own store's products",
+        });
+      }
     }
 
     // Soft delete

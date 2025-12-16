@@ -40,7 +40,8 @@ const RegisterPage = () => {
       
       // Redirect based on role
       const roleRoutes: Record<Role, string> = {
-        customer: '/customer/dashboard',
+        // customer: '/customer/dashboard',
+        customer: '/customer',
         store: '/store',
         delivery: '/delivery',
       };

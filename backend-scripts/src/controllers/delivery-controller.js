@@ -113,56 +113,56 @@ export const acceptOrder = async (req, res) => {
   }
 };
 
-// Update order status
-export const updateOrderStatus = async (req, res) => {
-  try {
-    // const partnerId = req.params.id;   // this id is not a partner id
-    const orderId = req.params.id;   // this id is not a partner id
-    const userId = req.user.id;
-    const { status } = req.body;
+// // Update order status
+// export const updateOrderStatus = async (req, res) => {
+//   try {
+//     // const partnerId = req.params.id;   // this id is not a partner id
+//     const orderId = req.params.id;   // this id is not a partner id
+//     const userId = req.user.id;
+//     const { status } = req.body;
 
-    const order = await Order.findById(orderId);
+//     const order = await Order.findById(orderId);
 
-    if (!order) throw new Error("Order not found");
+//     if (!order) throw new Error("Order not found");
 
-    // if (!order.assignedTo || order.assignedTo.toString() !== userId) {
-    if (!order.deliveryPartner || order.deliveryPartner.toString() !== userId) {
-      throw new Error("You are not assigned to this order");
-    }
+//     // if (!order.assignedTo || order.assignedTo.toString() !== userId) {
+//     if (!order.deliveryPartner || order.deliveryPartner.toString() !== userId) {
+//       throw new Error("You are not assigned to this order");
+//     }
 
-    // Enforce that the rider can only change status to PICKED_UP if the order is PACKED:
-    // They can still view and accept PLACED orders.
-    // They just can’t mark them as PICKED_UP prematurely.
-    // Riders see all available orders.
-    // They can claim any unassigned order.
-    // They cannot pick up until the store has packed it.
-    if (status === "PICKED_UP" && order.status !== "PACKED") {
-      throw new Error("Order cannot be picked up until it is packed by the store");
-    }
+//     // Enforce that the rider can only change status to PICKED_UP if the order is PACKED:
+//     // They can still view and accept PLACED orders.
+//     // They just can’t mark them as PICKED_UP prematurely.
+//     // Riders see all available orders.
+//     // They can claim any unassigned order.
+//     // They cannot pick up until the store has packed it.
+//     if (status === "PICKED_UP" && order.status !== "PACKED") {
+//       throw new Error("Order cannot be picked up until it is packed by the store");
+//     }
 
-    // validation of workflow match
-    validateStatusTransition(order.status, status, req.user.role);
+//     // validation of workflow match
+//     validateStatusTransition(order.status, status, req.user.role);
 
-    order.status = status;
-    order.updatedAt = new Date();
-    order.updatedBy = req.user.id;
-    await order.save();
+//     order.status = status;
+//     order.updatedAt = new Date();
+//     order.updatedBy = req.user.id;
+//     await order.save();
 
-    const io = req.app.get('io');
-    if (io) {
-      io.to(`user_${order.customer._id}`).emit('order_update', order);
-      io.emit('order_list_update', order); // admin / other partners
-    }
+//     const io = req.app.get('io');
+//     if (io) {
+//       io.to(`user_${order.customer._id}`).emit('order_update', order);
+//       io.emit('order_list_update', order); // admin / other partners
+//     }
 
-    res.status(200).json({
-      success: true,
-      data: order,
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({
-      success: false,
-      message: "Error in Update Order Status API",
-    });
-  }
-};
+//     res.status(200).json({
+//       success: true,
+//       data: order,
+//     });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({
+//       success: false,
+//       message: "Error in Update Order Status API",
+//     });
+//   }
+// };

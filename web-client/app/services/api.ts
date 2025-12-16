@@ -13,6 +13,8 @@ export const api = axios.create({
 api.interceptors.request.use((config) => {
   try {
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+    console.log("Token got from the localStorage-->", token);
+    
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -27,6 +29,7 @@ api.interceptors.response.use(
   (res) => res,
   (error) => {
     if (error?.response) {
+      console.log(error); 
       const status = error.response.status;
       const message = error.response.data?.message || error.message || 'API Error';
       const err = new Error(message) as Error & { status?: number };
@@ -54,18 +57,41 @@ export const customerApi = {
   getMyOrders: () => api.get('/orders/my').then((res) => res.data.data),
   getOrderById: (id: string) => api.get(`/orders/${id}`).then(handleData),
   placeOrder: (data: PlaceOrderData) => api.post('/orders', data).then(handleData),
+  getPublicProducts: () => api.get('/product/public').then((res) => res.data.data),
 };
 
 // Store
 export const storeApi = {
   // return orders array directly
-  getStoreOrders: () => api.get('/store/orders').then((res) => res.data.data),
-  acceptOrder: (id: string) => api.post(`/store/orders/${id}/accept`).then(handleData),
-  startPacking: (id: string) => api.post(`/store/orders/${id}/packing`).then(handleData),
-  markAsPacked: (id: string) => api.post(`/store/orders/${id}/packed`).then(handleData),
+  // getStoreOrders: () => api.get('/store/orders').then((res) => res.data.data),
+  // acceptOrder: (id: string) => api.post(`/store/orders/${id}/accept`).then(handleData),
+  // startPacking: (id: string) => api.post(`/store/orders/${id}/packing`).then(handleData),
+  // markAsPacked: (id: string) => api.post(`/store/orders/${id}/packed`).then(handleData),
+  // createStore: (data: CreateStoreData) => api.post('/store', data).then(handleData),
+  // deleteStore: (id: string) => api.delete(`/store/${id}`).then(handleData),
+
+  getStoreOrders: () =>
+    api.get('/store/orders').then(res => res.data.data as Order),
+
+  acceptOrder: (id: string) =>
+    api.post(`/store/orders/${id}/accept`).then(res => res.data.data as Order),
+
+  startPacking: (id: string) =>
+    api.post(`/store/orders/${id}/packing`).then(res => res.data.data as Order),
+
+  markAsPacked: (id: string) =>
+    api.post(`/store/orders/${id}/packed`).then(res => res.data.data as Order),
+
   createStore: (data: CreateStoreData) => api.post('/store', data).then(handleData),
   deleteStore: (id: string) => api.delete(`/store/${id}`).then(handleData),
+
+
 };
+// console.log("Get store orders--> ", storeApi.getStoreOrders);
+// console.log("Get Accept Store orders--> ", storeApi.acceptOrder);
+// console.log("Get Start Packing Store orders--> ", storeApi.startPacking);
+// console.log("Get Mark As Packed Store orders--> ", storeApi.markAsPacked);
+
 
 // Delivery
 export const deliveryApi = {
@@ -136,6 +162,7 @@ export type OrderStatus =
 
 export type Order = {
   _id: string;
+  orderId?: string;
   customer: Partial<User> | string;
   store: { _id: string; name?: string } | string;
   deliveryPartner?: Partial<User> | string | null;

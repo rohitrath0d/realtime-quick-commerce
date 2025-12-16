@@ -1,4 +1,5 @@
 import { Order } from '../models/order.js';
+import { Store } from '../models/store.js';
 import { User } from '../models/user.js';
 
 /**
@@ -40,6 +41,26 @@ export const listOrders = async (req, res) => {
     return res.status(500).json({
       error: 'Server error'
     });
+  }
+};
+
+
+// Admin: List all stores
+export const listAllStores = async (req, res) => {
+  try {
+    const stores = await Store.find()
+      .populate("owner", "name email")
+      .sort({ createdAt: -1 })
+      .limit(200);
+
+    res.status(200).json({
+      success: true,
+      count: stores.length,
+      data: stores,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Error fetching stores" });
   }
 };
 

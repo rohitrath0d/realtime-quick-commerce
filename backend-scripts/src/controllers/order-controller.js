@@ -1,6 +1,7 @@
 import { Store } from "../models/store.js"
 import { Order } from "../models/order.js"
 import { Product } from "../models/product.js";
+import mongoose from 'mongoose';
 
 
 export const placeOrder = async (req, res) => {
@@ -57,7 +58,6 @@ export const placeOrder = async (req, res) => {
   }
 };
 
-
 export const getMyOrders = async (req, res) => {
   try {
     const orders = await Order.find({ customer: req.user.id })
@@ -65,6 +65,18 @@ export const getMyOrders = async (req, res) => {
       .populate("store", "name")
       // .populate("assignedTo", "name");
       .populate("deliveryPartner", "name");
+
+    // Happy case: Orders are found, return them
+    if (orders.length > 0) {
+      return res.status(200).json({
+        success: true,
+        count: orders.length,
+        data: orders,
+      });
+    }
+
+    console.log('User ID:', req.user.id); // Checking if it's a valid ObjectId
+    console.log('Orders found:', orders.length);
 
     res.status(200).json({
       success: true,
@@ -83,6 +95,11 @@ export const getMyOrders = async (req, res) => {
 
 export const getOrderById = async (req, res) => {
   try {
+    // Validate ID early to avoid casting errors and clearer responses
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ success: false, message: 'Invalid order id' });
+    }
+
     const order = await Order.findById(req.params.id)
       .populate("customer", "name email")
       .populate("store", "name")
@@ -102,7 +119,7 @@ export const getOrderById = async (req, res) => {
       (user.role === "CUSTOMER" && order.customer._id.toString() !== user.id) ||
       (user.role === "STORE" && order.store._id.toString() !== user.storeId) ||
       // (user.role === "DELIVERY" && order.assignedTo?._id.toString() !== user.id)
-      (user.role === "DELIVERY" && order.deliveryPartner?._id.toString() !== user.id )
+      (user.role === "DELIVERY" && order.deliveryPartner?._id.toString() !== user.id)
     ) {
       return res.status(403).json({
         success: false,

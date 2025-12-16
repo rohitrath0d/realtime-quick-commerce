@@ -11,6 +11,7 @@ import productRoutes from './routes/product-routes.js';
 import deliveryRoutes from './routes/delivery-routes.js'
 import adminRoutes from './routes/admin-routes.js'
 import storeRoutes from './routes/store-routes.js'
+import paymentRoutes from './routes/payment-routes.js'
 
 
 
@@ -47,6 +48,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/product", productRoutes);
 app.use("/api/store", storeRoutes);
 app.use("/api/delivery", deliveryRoutes);
+app.use("/api/payment", paymentRoutes);
 
 
 // error handler 

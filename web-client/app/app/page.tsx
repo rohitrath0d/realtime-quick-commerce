@@ -141,13 +141,13 @@ const Index = () => {
 
             <div className="flex items-center justify-center gap-4 animate-fade-up opacity-0" style={{ animationDelay: "0.4s" }}>
               {/* <Link to="/customer"> */}
-              <Link href="/customer">
+              <Link href="/login">
                 {/* <Button size="xl" variant="hero"> */}
                 <Button size="lg" variant="default">
                   Start Ordering
                 </Button>
               </Link>
-              <Link href="/delivery">
+              <Link href="/login">
                 {/* <Button size="xl" variant="outline"> */}
                 <Button size="lg" variant="outline">
                   Become a Partner

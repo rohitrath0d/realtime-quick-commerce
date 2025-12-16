@@ -15,8 +15,8 @@ const DeliveryLayout = ({ children }: DeliveryLayoutProps) => {
   const { user, token } = useAuth();
 
   useEffect(() => {
-    const role = user?.role ? String(user.role).trim() : undefined;
-    if (role === 'DELIVERY' && token) {
+    const role = user?.role ? String(user.role).trim().toLowerCase() : undefined;
+    if (role === 'delivery' && token) {
       connectSocket(token);
     }
   }, [user?.role, token]);
@@ -24,7 +24,7 @@ const DeliveryLayout = ({ children }: DeliveryLayoutProps) => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main className="pt-20"><ProtectedRoute allowedRoles={["DELIVERY"]}>{children}</ProtectedRoute></main>
+      <main className="pt-20"><ProtectedRoute allowedRoles={["delivery"]}>{children}</ProtectedRoute></main>
     </div>
   );
 };

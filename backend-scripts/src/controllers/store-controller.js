@@ -3,11 +3,23 @@ import { Order } from "../models/order.js";
 import { validateStatusTransition } from '../utils/orderWorkfllow.js';
 
 
+
+// GET /api/store
+// returns { exists: true, store: {...} } or { exists: false }
+export const getStore = async (req, res) => {
+  const store = await Store.findOne({ owner: req.user.id });
+  if (!store) return res.status(200).json({ exists: false });
+  return res.status(200).json({ exists: true, store });
+};
+
 // List orders for this store (PLACED → PACKED)
 export const listStoreOrders = async (req, res) => {
   try {
     const store = await Store.findOne({ owner: req.user.id });
-    if (!store) return res.status(404).json({ success: false, message: "Store not found" });
+    // if (!store) return res.status(404).json({ success: false, message: "Store not found" });
+    if (!store) {
+      return res.status(200).json({ success: true, message: "Store not found", storeExists: false, data: [] });
+    }
 
     const orders = await Order.find({
       store: store._id,
@@ -17,7 +29,12 @@ export const listStoreOrders = async (req, res) => {
       .populate("customer", "name email")
       .populate("deliveryPartner", "name");
 
-    res.status(200).json({ success: true, count: orders.length, data: orders });
+    res.status(200).json({
+      success: true,
+      storeExists: true,
+      count: orders.length,
+      data: orders
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ success: false, message: "Error fetching store orders" });
@@ -88,7 +105,7 @@ export const markPacked = async (req, res) => {
     if (order.status !== "PACKING")
       return res.status(400).json({ success: false, message: "Order must be PACKING first" });
 
-    order.status = "PACKED";    
+    order.status = "PACKED";
     order.updatedBy = req.user.id;      // Helps trace who changed what.
     await order.save();
 

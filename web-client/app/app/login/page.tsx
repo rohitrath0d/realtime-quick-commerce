@@ -9,14 +9,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/providers/AuthProvider';
 // import { toast } from '@/hooks/use-toast';
-import { toast } from 'sonner'; 
+import { toast } from 'sonner';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  
+
   const { login } = useAuth();
   const router = useRouter();
   const params = useSearchParams();
@@ -28,17 +28,22 @@ const LoginPage = () => {
     try {
       const response = await login(email, password);
       toast.success('Login successful');
-      
+
       // Redirect based on provided 'from' query param or default
       const from = params?.get('from') || '/';
 
-      if (params?.get('from')) {
+      console.log('Search params:', params); // Check if 'from' exists
+      console.log('Redirecting from:', params?.get('from'));
+
+      // if (params?.get('from')) {
+      if (from !== '/') {
         router.replace(from);
       } else if (response?.user?.role) {
         const role = String(response.user.role).trim().toLowerCase();
         switch (role) {
           case 'customer':
-            router.replace('/customer/dashboard');
+            // router.replace('/customer/dashboard');
+            router.replace('/customer');
             break;
           case 'store':
             router.replace('/store');

@@ -1,30 +1,34 @@
 import express from 'express';
 import { protectAuth } from '../middlewares/auth-middleware.js'
 import { authorizeRole } from '../middlewares/role-middleware.js';
-import { createStore, deleteStore, listStoreOrders, markPacked, startPacking } from '../controllers/store-controller.js';
-import { acceptOrder, updateOrderStatus } from '../controllers/delivery-controller.js';
+import { createStore, deleteStore, getStore, listStoreOrders, markPacked, startPacking } from '../controllers/store-controller.js';
+import {
+  acceptOrder,
+  // updateOrderStatus 
+} from '../controllers/delivery-controller.js';
 
 
 const router = express.Router();
 
-router.post(
-  "/orders/:id/status",
-  protectAuth,
-  authorizeRole("STORE"),
-  updateOrderStatus
-);
+router.post("/", protectAuth, authorizeRole("STORE"), createStore);
 
-// Store endpoints
-router.use(protectAuth);
+router.get("/", protectAuth, authorizeRole("STORE"), getStore); //  GET / → get store info - Returns whether the store exists and, if it does, its details.
 
 // Orders workflow
-router.get("/orders", listStoreOrders);
-router.post("/orders/:id/accept", acceptOrder);
-router.post("/orders/:id/packing", startPacking);
-router.post("/orders/:id/packed", markPacked);
+router.get("/orders", protectAuth, authorizeRole("STORE"), listStoreOrders);  // get orders for the store - Returns only orders associated with the store.
+
+router.post("/orders/:id/accept", protectAuth, authorizeRole("STORE"), acceptOrder);
+router.post("/orders/:id/packing", protectAuth, authorizeRole("STORE"), startPacking);
+router.post("/orders/:id/packed", protectAuth, authorizeRole("STORE"), markPacked);
+
+// router.post(
+//   "/orders/:id/status",
+//   protectAuth,
+//   authorizeRole("STORE"),
+//   updateOrderStatus
+// );
 
 // Store management
-router.post("/", createStore);
-router.delete("/:id", deleteStore);
+router.delete("/:id", authorizeRole("STORE"), deleteStore);
 
 export default router;  

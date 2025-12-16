@@ -6,7 +6,7 @@ import { authorizeRole } from '../middlewares/role-middleware.js';
 const router = express.Router();
 
 router.post("/", protectAuth, authorizeRole("CUSTOMER"), placeOrder);      // place order
-router.get("/:id", protectAuth, getOrderById);                                // list customer orders
-router.get("/my", authorizeRole("CUSTOMER"), protectAuth, getMyOrders);     // order details
+router.get("/:id", protectAuth, authorizeRole("CUSTOMER"), getOrderById);                                // list customer orders
+router.get("/my", protectAuth, authorizeRole("CUSTOMER"), getMyOrders);     // order details
 
 export default router;  

@@ -8,6 +8,10 @@
 // next()	Synchronous call
 
 export const authorizeRole = (...allowedRoles) => {
+
+  // Support both array and spread arguments
+  const roles = Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles];
+
   return (req, res, next) => {
     if (!req.user || !req.user.role) {
       return res.status(401).json({
@@ -16,7 +20,12 @@ export const authorizeRole = (...allowedRoles) => {
       });
     }
 
-    if (!allowedRoles.includes(req.user.role)) {
+    // Case-insensitive role comparison
+    const userRole = req.user.role.toUpperCase();
+    const normalizedRoles = roles.map(r => r.toUpperCase());
+
+    // if (!allowedRoles.includes(req.user.role)) {
+    if (!normalizedRoles.includes(userRole)) {
       return res.status(403).json({
         success: false,
         message: "Access denied: insufficient permissions",
