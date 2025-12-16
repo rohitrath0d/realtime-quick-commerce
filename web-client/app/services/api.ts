@@ -1,25 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import axios from 'axios';
 
-// export function getApiBaseUrl() {
-//   const url = process.env.NEXT_PUBLIC_API_URL;
-
-//   if (!url) {
-//     if (process.env.NODE_ENV === 'development') {
-//       console.warn('NEXT_PUBLIC_API_URL is not defined');
-//     }
-//     return '';
-//   }
-
-//   return url;
-// }
 
 // const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
-// const API_BASE_URL = getApiBaseUrl();
-// if (!API_BASE_URL) {
-//   throw new Error('NEXT_PUBLIC_API_URL is not defined');
-// }
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
