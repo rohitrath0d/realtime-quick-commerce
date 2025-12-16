@@ -9,7 +9,7 @@ services:
     restart: always
 
   frontend:
-    build: ./web-client
+    build: ./web-client/app
     container_name: quick-comm-frontend
     env_file:
       - .env
