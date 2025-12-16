@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 type StatusType = "pending" | "confirmed" | "packing" | "packed" | "picked" | "transit" | "delivered" | "cancelled";
 
 interface StatusBadgeProps {
-  status: StatusType;
+  status: string;
   className?: string;
   pulse?: boolean;
 }
@@ -44,10 +44,44 @@ const statusConfig: Record<StatusType, { label: string; className: string }> = {
 };
 
 const StatusBadge = ({ status, className, pulse = false }: StatusBadgeProps) => {
-  const config = statusConfig[status] ?? {
-    label: status ?? "UNKNOWN",
-    className: "bg-gray-100 text-gray-700 border-gray-300",
+  const normalizeStatus = (raw: string): StatusType => {
+    const s = (raw || "").toString().trim();
+    const upper = s.toUpperCase();
+
+    switch (upper) {
+      case "PLACED":
+        return "pending";
+      case "STORE_ACCEPTED":
+        return "confirmed";
+      case "PACKING":
+        return "packing";
+      case "PACKED":
+        return "packed";
+      case "PICKED_UP":
+        return "picked";
+      case "ON_THE_WAY":
+        return "transit";
+      case "DELIVERED":
+        return "delivered";
+      case "CANCELLED":
+        return "cancelled";
+      default: {
+        const lower = s.toLowerCase();
+        if (lower === "pending") return "pending";
+        if (lower === "confirmed") return "confirmed";
+        if (lower === "packing") return "packing";
+        if (lower === "packed") return "packed";
+        if (lower === "picked") return "picked";
+        if (lower === "transit") return "transit";
+        if (lower === "delivered") return "delivered";
+        if (lower === "cancelled") return "cancelled";
+        return "pending";
+      }
+    }
   };
+
+  const normalized = normalizeStatus(status);
+  const config = statusConfig[normalized];
 
   return (
     <span
@@ -57,7 +91,7 @@ const StatusBadge = ({ status, className, pulse = false }: StatusBadgeProps) => 
         className
       )}
     >
-      {(status === "transit" || status === "picked") && pulse && (
+      {(normalized === "transit" || normalized === "picked") && pulse && (
         <span className="relative flex h-2 w-2">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-current opacity-75"></span>
           <span className="relative inline-flex rounded-full h-2 w-2 bg-current"></span>
