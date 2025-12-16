@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -18,7 +19,7 @@ const DeliveryDashboard = () => {
   const [activeTab, setActiveTab] = useState<"available" | "active">("available");
   const [availableOrders, setAvailableOrders] = useState<Order[]>([]);
   const [myOrders, setMyOrders] = useState<Order[]>([]);
-  const [stats, setStats] = useState<{ totalEarnings: number } | null>(null);
+  const [stats, setStats] = useState<{ available: number; active: number; completed: number;totalEarnings: number } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [unauthorized, setUnauthorized] = useState(false);

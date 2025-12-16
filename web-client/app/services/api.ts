@@ -225,6 +225,7 @@ export type DeliveryPartner = {
   email?: string;
   phone?: string;
   status?: 'active' | 'idle' | string;
+  isAvailable?: boolean;
   activeOrders?: number;
   completedToday?: number;
   rating?: number;
