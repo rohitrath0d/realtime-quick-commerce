@@ -1,31 +1,11 @@
 services:
-  mongo:
-    image: mongo:8.0
-    container_name: mongo-db-container
-    restart: unless-stopped
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: "${MONGO_INITDB_ROOT_USERNAME}"
-      MONGO_INITDB_ROOT_PASSWORD: "${MONGO_INITDB_ROOT_PASSWORD}"
-    ports:
-      - 27017:27017
-    volumes:
-      - mongo-db-data:/data/db
-    networks:
-    - quickcomm-db-net
-
-
   backend:
     build: ./backend
     container_name: quick-comm-backend
     environment:
-      # - MONGO_URI=mongodb://mongo:27017/quick-commerce-db           # Database quick-commerce-db will auto-create
-      - MONGO_URI=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongo:27017/quick-commerce-db?authSource=admin
-    depends_on:
-      - mongo
+      - MONGO_URI=${MONGO_URI}  # use this to read from .env file 
     ports:
       - "4000:4000"
-    networks:
-    - quickcomm-db-net
     
 
   frontend:
@@ -33,15 +13,6 @@ services:
     container_name: quick-comm-frontend
     ports:
       - "3000:80"
-    networks:
-    - quickcomm-db-net    # frontend available at http://localhost:3000
-
-volumes:
-  mongo-db-data:
-    driver: local
-
-networks:
-  quickcomm-db-net:
 
 
 
