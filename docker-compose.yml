@@ -1,6 +1,6 @@
 services:
   backend:
-    build: ./backend
+    build: ./backend-scripts
     container_name: quick-comm-backend
     env_file:
       - .env
@@ -9,7 +9,7 @@ services:
     restart: always
 
   frontend:
-    build: ./frontend
+    build: ./web-client
     container_name: quick-comm-frontend
     env_file:
       - .env
