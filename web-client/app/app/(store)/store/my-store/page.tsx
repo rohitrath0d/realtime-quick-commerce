@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Store, MapPin, Calendar, Trash2, AlertTriangle, RefreshCw, Edit } from "lucide-react";
+import { Store, MapPin, Calendar, Trash2, AlertTriangle, RefreshCw, 
+  // Edit 
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -164,7 +166,7 @@ const MyStorePage = () => {
       {/* Store Details Card */}
       <div className="glass-card rounded-2xl p-6">
         <div className="flex items-start gap-4 mb-6">
-          <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-orange-500/20 to-orange-600/10 flex items-center justify-center">
+          <div className="w-16 h-16 rounded-xl bg-linear-to-br from-orange-500/20 to-orange-600/10 flex items-center justify-center">
             <Store className="w-8 h-8 text-orange-500" />
           </div>
           <div className="flex-1">

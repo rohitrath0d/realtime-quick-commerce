@@ -164,7 +164,7 @@ const CustomerDashboard = () => {
 
       {/* Cart Bar */}
       {totalItems > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background via-background to-transparent z-50">
+        <div className="fixed bottom-0 left-0 right-0 p-4 bg-linear-to-t from-background via-background to-transparent z-50">
           <div className="container mx-auto max-w-lg">
             <Button
               size="lg"

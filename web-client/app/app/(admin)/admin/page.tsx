@@ -98,7 +98,7 @@ const RevenueTrendChart = ({ orders }: { orders: Order[] }) => {
                 ${revenue.toFixed(0)}
               </span>
               <div 
-                className="w-full bg-gradient-to-t from-primary to-primary/60 rounded-t-lg transition-all duration-500"
+                className="w-full bg-linear-to-t from-primary to-primary/60 rounded-t-lg transition-all duration-500"
                 style={{ height: `${(revenue / maxRevenue) * 80}px`, minHeight: '4px' }}
               />
             </div>
@@ -246,7 +246,7 @@ const AdminDashboard = () => {
     return (
       <div>
         <h2 className="text-2xl font-bold">Unauthorized</h2>
-        <p className="text-muted-foreground">You don't have access to admin resources.</p>
+        <p className="text-muted-foreground">You don&apos;t have access to admin resources.</p>
       </div>
     );
   }
@@ -278,7 +278,7 @@ const AdminDashboard = () => {
         />
         <div className="glass-card rounded-2xl p-5">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500/20 to-green-600/10 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-linear-to-br from-green-500/20 to-green-600/10 flex items-center justify-center">
               <DollarSign className="w-5 h-5 text-green-500" />
             </div>
             <span className="text-sm text-muted-foreground">Revenue</span>

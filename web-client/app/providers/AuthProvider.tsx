@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
@@ -30,7 +31,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           const profileRes = await authApi.getProfile();
           const profile = profileRes?.user || profileRes;
           // Normalize role to lowercase and trim for frontend usage
-          const normalized = { ...profile, role: String(profile.role).trim().toLowerCase() };
+          const normalized = {
+            ...profile,
+            _id: (profile?._id || profile?.id) as string,
+            role: String(profile.role).trim().toLowerCase()
+          };
           setUser(normalized);
           setToken(storedToken);
         } catch (error) {
@@ -49,7 +54,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const response = await authApi.login(email, password);
     localStorage.setItem('token', response.token);
     setToken(response.token);
-    const normalizedUser = { ...response.user, role: String(response.user.role).trim().toLowerCase() };
+    const normalizedUser = {
+      ...response.user,
+      _id: ((response.user as any)?._id || (response.user as any)?.id) as string,
+      role: String(response.user.role).trim().toLowerCase()
+    };
     setUser(normalizedUser);
     // Do not auto-connect socket here; dashboards will connect after role validation
     return { ...response, user: normalizedUser };
@@ -60,7 +69,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const response = await authApi.register(payload);
     localStorage.setItem('token', response.token);
     setToken(response.token);
-    const normalizedUser = { ...response.user, role: String(response.user.role).trim().toLowerCase() };
+    const normalizedUser = {
+      ...response.user,
+      _id: ((response.user as any)?._id || (response.user as any)?.id) as string,
+      role: String(response.user.role).trim().toLowerCase()
+    };
     setUser(normalizedUser);
     return { ...response, user: normalizedUser };
   };
@@ -70,6 +83,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setToken(null);
     setUser(null);
     disconnectSocket();
+
+    // Ensure we navigate to login to clear any stale route/queryparams
+    if (typeof window !== 'undefined') {
+      window.location.replace('/login');
+    }
   };
 
   return (

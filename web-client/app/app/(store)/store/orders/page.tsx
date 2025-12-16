@@ -18,7 +18,7 @@ import { useOrderSocket } from "@/hooks/useSocketEvents";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
-type TabType = "pending" | "processing" | "ready";
+type TabType = "pending" | "processing" | "ready" | "all";
 
 const StoreOrdersPage = () => {
   const [activeTab, setActiveTab] = useState<TabType>("pending");
@@ -29,7 +29,8 @@ const StoreOrdersPage = () => {
   const fetchOrders = useCallback(async () => {
     setIsLoading(true);
     try {
-      const data = await storeApi.getStoreOrders();
+      // const data = await storeApi.getStoreOrders();
+      const data = await storeApi.getAllStoreOrders();
       setOrders(data.data || []);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to load orders. Please try again.");
@@ -108,6 +109,8 @@ const StoreOrdersPage = () => {
 
   const getOrdersForTab = () => {
     switch (activeTab) {
+      case "all":
+        return orders;
       case "pending":
         return pendingOrders;
       case "processing":
@@ -123,6 +126,7 @@ const StoreOrdersPage = () => {
     { id: "pending" as TabType, label: "New Orders", count: pendingOrders.length, icon: Clock },
     { id: "processing" as TabType, label: "Processing", count: processingOrders.length, icon: Package },
     { id: "ready" as TabType, label: "Ready for Pickup", count: readyOrders.length, icon: CheckCircle2 },
+    { id: "all" as TabType, label: "All Orders", count: orders.length, icon: Package },
   ];
 
   const getActionButton = (order: Order) => {
@@ -298,7 +302,8 @@ const StoreOrdersPage = () => {
 
                 <div className="flex items-center gap-4">
                   <div className="text-right">
-                    <p className="text-lg font-bold">${order.total.toFixed(2)}</p>
+                    {/* <p className="text-lg font-bold">${order.total.toFixed(2)}</p> */}
+                    <p className="text-lg font-bold">${order.total ? order.total.toFixed(2) : '0.00'}</p>
                     <p className="text-xs text-muted-foreground">
                       {order.createdAt ? new Date(order.createdAt).toLocaleTimeString() : ''}
                     </p>

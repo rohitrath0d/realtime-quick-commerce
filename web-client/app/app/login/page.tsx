@@ -30,16 +30,29 @@ const LoginPageInner = () => {
       toast.success('Login successful');
 
       // Redirect based on provided 'from' query param or default
+      // If 'from' exists, only redirect there when it matches the logged-in user's role
+      // (prevents stale 'from' values from sending a user to a page for a different role).
       const from = params?.get('from') || '/';
 
       console.log('Search params:', params); // Check if 'from' exists
       console.log('Redirecting from:', params?.get('from'));
 
+      const role = response?.user?.role ? String(response.user.role).trim().toLowerCase() : null;
+
+      const roleMatchesFrom = (role: string | null, fromPath: string) => {
+        if (!role || !fromPath || fromPath === '/') return false;
+        const p = fromPath.split('?')[0].toLowerCase();
+        if (p.startsWith('/delivery')) return role === 'delivery';
+        if (p.startsWith('/store')) return role === 'store';
+        if (p.startsWith('/customer')) return role === 'customer';
+        if (p.startsWith('/admin')) return role === 'admin';
+        return false;
+      };
+
       // if (params?.get('from')) {
-      if (from !== '/') {
+      if (from !== '/'  && roleMatchesFrom(role, from)) {
         router.replace(from);
-      } else if (response?.user?.role) {
-        const role = String(response.user.role).trim().toLowerCase();
+      } else if (role) {
         switch (role) {
           case 'customer':
             // router.replace('/customer/dashboard');

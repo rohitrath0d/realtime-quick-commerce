@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 // import { Link, useLocation } from "react-router-dom";
@@ -6,6 +7,7 @@ import { usePathname } from "next/navigation";
 import { Package, User, Truck, LayoutDashboard, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import { useRouter } from 'next/navigation';
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/providers/AuthProvider";
 
@@ -27,6 +29,7 @@ const Header = () => {
   const activePanel = getActivePanel();
 
   const { isAuthenticated, user, logout } = useAuth();
+  const router = useRouter();
 
   // Only show navigation relevant to the authenticated user's role.
   let navItems = [] as { path: string; label: string; icon: any }[];
@@ -91,7 +94,7 @@ const Header = () => {
             ) : (
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground hidden sm:block">{user?.name}</span>
-                <Button size="sm" variant="ghost" onClick={logout}>Logout</Button>
+                <Button size="sm" variant="ghost" onClick={() => { logout(); router.replace('/login'); }}>Logout</Button>
               </div>
             )}
           </nav>
@@ -141,7 +144,7 @@ const Header = () => {
               ) : (
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-muted-foreground">{user?.name}</span>
-                  <Button variant="ghost" onClick={() => { setMobileMenuOpen(false); logout(); }}>Logout</Button>
+                  <Button variant="ghost" onClick={() => { setMobileMenuOpen(false); logout(); router.replace('/login'); }}>Logout</Button>
                 </div>
               )}
         </nav>

@@ -85,10 +85,29 @@ export const listDeliveryPartners = async (req, res) => {
       .select('-password')
       .limit(200);
 
+
+    // For each partner compute quick stats: activeOrders, completedToday, rating (if available)
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+
+    const partnersWithStats = await Promise.all(
+      partners.map(async (p) => {
+        const activeOrders = await Order.countDocuments({ deliveryPartner: p._id, status: { $nin: ['DELIVERED', 'CANCELLED'] } });
+        const completedToday = await Order.countDocuments({ deliveryPartner: p._id, status: 'DELIVERED', updatedAt: { $gte: todayStart } });
+        return {
+          ...p.toObject(),
+          activeOrders,
+          completedToday,
+          rating: p.rating ?? null,
+        };
+      })
+    );
+
+
     res.status(200).json({
       success: true,
-      count: partners.length,
-      data: partners,
+      count: partnersWithStats.length,
+      data: partnersWithStats,
     });
 
   } catch (err) {
@@ -115,7 +134,7 @@ export const liveStats = async (req, res) => {
     return res.status(200).json({
       totalOrders,
       placed,
-      packed, 
+      packed,
       delivered
     });
   } catch (err) {

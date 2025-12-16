@@ -127,7 +127,7 @@ const AdminStoresPage = () => {
           <div key={store._id} className="glass-card rounded-2xl p-5">
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500/20 to-orange-600/10 flex items-center justify-center">
+                <div className="w-12 h-12 rounded-xl bg-linear-to-br from-orange-500/20 to-orange-600/10 flex items-center justify-center">
                   <Store className="w-6 h-6 text-orange-500" />
                 </div>
                 <div>

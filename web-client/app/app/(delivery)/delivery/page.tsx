@@ -18,20 +18,25 @@ const DeliveryDashboard = () => {
   const [activeTab, setActiveTab] = useState<"available" | "active">("available");
   const [availableOrders, setAvailableOrders] = useState<Order[]>([]);
   const [myOrders, setMyOrders] = useState<Order[]>([]);
+  const [stats, setStats] = useState<{ totalEarnings: number } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [unauthorized, setUnauthorized] = useState(false);
 
   const fetchOrders = useCallback(async () => {
     try {
-      const [unassigned, assigned] = await Promise.all([
+      // const [unassigned, assigned] = await Promise.all([
+      const [unassigned, assigned, statsRes] = await Promise.all([
         deliveryApi.getUnassignedOrders(),      // res.data.data
         deliveryApi.getMyOrders(),              // res.data.data
+        deliveryApi.getStats(),
       ]);
       console.log("Assigned orders--> ", assigned);
       console.log("Unassigned orders--> ", unassigned);
       setAvailableOrders(unassigned);
+      console.log("Assigned orders after set--> ", assigned);
       setMyOrders(assigned);
+      setStats((statsRes as any)?.data || null);
     } catch (error) {
       const err = error as Error & { status?: number };
       if (err?.status === 403 || err?.status === 404) {
@@ -137,24 +142,19 @@ const DeliveryDashboard = () => {
     }
   };
 
-  const getNextStatus = (currentStatus: OrderStatus): OrderStatus | null => {
+  const getNextStatus = (currentStatus?: OrderStatus): OrderStatus | null => {
     const flow: Partial<Record<OrderStatus, OrderStatus>> = {
-      PLACED: 'PICKED_UP',
-      STORE_ACCEPTED: 'PICKED_UP',
-      PACKING: 'PICKED_UP',
       PACKED: 'PICKED_UP',
       PICKED_UP: 'ON_THE_WAY',
       ON_THE_WAY: 'DELIVERED',
     };
+    if (!currentStatus) return null;
     console.log('Status flow check:', currentStatus, '->', flow[currentStatus]);
     return flow[currentStatus] || null;
   };
 
   const getActionLabel = (status: OrderStatus): string => {
     const labels: Partial<Record<OrderStatus, string>> = {
-      PLACED: 'Mark as Picked Up',
-      STORE_ACCEPTED: 'Mark as Picked Up',
-      PACKING: 'Mark as Picked Up',
       PACKED: 'Mark as Picked Up',
       PICKED_UP: 'Start Delivery',
       ON_THE_WAY: 'Mark as Delivered',
@@ -162,7 +162,7 @@ const DeliveryDashboard = () => {
     return labels[status] || 'Update';
   };
 
-  const mapToUiStatus = (s: OrderStatus): UIOrderStatus | 'cancelled' => {
+  const mapToUiStatus = (s?: OrderStatus): UIOrderStatus | 'cancelled' => {
     switch (s) {
       case 'PLACED':
         return 'pending';
@@ -185,8 +185,14 @@ const DeliveryDashboard = () => {
     }
   };
 
+  console.log(myOrders, 'My Orders');
+
   const activeDeliveries = myOrders.filter((o) => mapToUiStatus(o.status) !== 'delivered');
-  const completedToday = myOrders.filter((o) => mapToUiStatus(o.status) === 'delivered').length;
+  // const completedToday = myOrders.filter((o) => mapToUiStatus(o.status) === 'delivered').length;
+  const completedToday = stats?.completed || 0;
+  const earnings = typeof stats?.totalEarnings === 'number' ? stats.totalEarnings : 0;
+
+  console.log(activeDeliveries, 'Active Deliveries');
 
   if (isLoading) {
     return (
@@ -224,7 +230,8 @@ const DeliveryDashboard = () => {
         </div>
         <div className="animate-fade-up opacity-0" style={{ animationDelay: "0.25s" }}>
           <StatsCard
-            title="Completed Today"
+            // title="Completed Today"
+            title="Total Completed"
             value={completedToday}
             icon={CheckCircle2}
           />
@@ -239,7 +246,8 @@ const DeliveryDashboard = () => {
         <div className="animate-fade-up opacity-0" style={{ animationDelay: "0.35s" }}>
           <StatsCard
             title="Earnings"
-            value={`$${(completedToday * 5).toFixed(0)}`}
+            // value={`$${(completedToday * 5).toFixed(0)}`}
+            value={`$${earnings.toFixed(0)}`}
             icon={Truck}
           />
         </div>
@@ -274,64 +282,77 @@ const DeliveryDashboard = () => {
       {/* Orders Grid */}
       <div className="grid md:grid-cols-2 gap-4">
         {activeTab === "available" &&
-          availableOrders.map((order, index) => (
-            <div
-              key={order._id}
-              className="glass-card rounded-2xl p-5 animate-fade-up opacity-0"
-              style={{ animationDelay: `${0.45 + index * 0.05}s` }}
-            >
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <span className="text-sm text-muted-foreground">#{order._id}</span>
-                  <h3 className="font-semibold text-foreground">{typeof order.customer === 'string' ? 'Customer' : order.customer?.name || 'Customer'}</h3>
-                </div>
-                <span className="text-xl font-bold text-primary">${order.total.toFixed(2)}</span>
-              </div>
-
-              <div className="flex items-start gap-2 mb-4 text-sm text-muted-foreground">
-                <MapPin className="w-4 h-4 mt-0.5 shrink-0 text-accent" />
-                <span>{typeof order.store === 'string' ? 'Store' : order.store?.name || 'Store'}</span>
-              </div>
-
-              <div className="flex items-center gap-2 mb-4 text-sm">
-                <Package className="w-4 h-4 text-muted-foreground" />
-                <span className="text-muted-foreground">{order.items.length} items</span>
-              </div>
-
-              <Button
-                variant="accent"
-                className="w-full"
-                onClick={() => acceptOrder(order._id)}
-                disabled={actionLoading === order._id}
+          availableOrders.map((order, index) => {
+            const orderId = order?._id || order?.orderId || '';
+            return (
+              <div
+                // key={order._id}
+                key={orderId || `idx-${index}`}
+                className="glass-card rounded-2xl p-5 animate-fade-up opacity-0"
+                style={{ animationDelay: `${0.45 + index * 0.05}s` }}
               >
-                {actionLoading === order._id ? (
-                  <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  "Accept Order"
-                )}
-              </Button>
-            </div>
-          ))}
+                <div className="flex items-start justify-between mb-4">
+                  <div>
+                    {/* <span className="text-sm text-muted-foreground">#{order._id}</span> */}
+                    <span className="text-sm text-muted-foreground">#{orderId || '--------'}</span>
+                    <h3 className="font-semibold text-foreground">{typeof order.customer === 'string' ? 'Customer' : order.customer?.name || 'Customer'}</h3>
+                  </div>
+                  <span className="text-xl font-bold text-primary">${order.total ? order.total.toFixed(2) : "0.00"}</span>
+                </div>
+
+                <div className="flex items-start gap-2 mb-4 text-sm text-muted-foreground">
+                  <MapPin className="w-4 h-4 mt-0.5 shrink-0 text-accent" />
+                  <span>{typeof order.store === 'string' ? 'Store' : order.store?.name || 'Store'}</span>
+                </div>
+
+                <div className="flex items-center gap-2 mb-4 text-sm">
+                  <Package className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-muted-foreground">{order.items.length} items</span>
+                </div>
+
+                <Button
+                  variant="accent"
+                  className="w-full"
+                  // onClick={() => acceptOrder(order._id)}
+                  // disabled={actionLoading === order._id}
+                  onClick={() => orderId && acceptOrder(orderId)}
+                  disabled={!orderId || actionLoading === orderId}
+                >
+                  {/* {actionLoading === order._id ? ( */}
+                  {actionLoading === orderId ? (
+                    <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    "Accept Order"
+                  )}
+                </Button>
+              </div>
+            );
+          })}
+
 
         {activeTab === "active" &&
           activeDeliveries.map((order, index) => {
-            const nextStatus = getNextStatus(order.status as OrderStatus);
+            // const nextStatus = getNextStatus(order.status as OrderStatus);
+            const orderId = order?._id || order?.orderId || '';
+            const nextStatus = getNextStatus(order?.status as OrderStatus | undefined)
 
             return (
               <div
-                key={order._id}
+                // key={order._id}
+                key={orderId || `idx-${index}`}
                 className="glass-card rounded-2xl p-5 animate-fade-up opacity-0"
                 style={{ animationDelay: `${0.45 + index * 0.05}s` }}
               >
                 <div className="flex items-start justify-between mb-4">
                   <div>
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-sm text-muted-foreground">#{order._id}</span>
-                      <StatusBadge status={mapToUiStatus(order.status)} pulse={mapToUiStatus(order.status) === 'transit'} />
+                      <span className="text-sm text-muted-foreground">#{orderId || '--------'}</span>
+                      <StatusBadge status={mapToUiStatus(order?.status as OrderStatus | undefined)} pulse={mapToUiStatus(order?.status as OrderStatus | undefined) === 'transit'} />
                     </div>
                     <h3 className="font-semibold text-foreground">{typeof order.customer === 'string' ? 'Customer' : order.customer?.name || 'Customer'}</h3>
                   </div>
-                  <span className="text-xl font-bold text-primary">${order.total.toFixed(2)}</span>
+                  {/* <span className="text-xl font-bold text-primary">${order.total.toFixed(2)}</span> */}
+                  <span className="text-xl font-bold text-primary">${order.total ? order.total.toFixed(2) : '0.00'}</span>
                 </div>
 
                 <div className="flex items-start gap-2 mb-4 text-sm text-muted-foreground">
@@ -342,7 +363,8 @@ const DeliveryDashboard = () => {
                 <div className="flex items-center gap-2 mb-4 text-sm">
                   <Package className="w-4 h-4 text-muted-foreground" />
                   <span className="text-foreground">
-                    {order.items.map((i: { name: string; qty: number }) => `${i.qty}x ${i.name}`).join(", ")}
+                    {/* {order.items.map((i: { name: string; qty: number }) => `${i.qty}x ${i.name}`).join(", ")} */}
+                    {(order.items ?? []).map((i: { name: string; qty: number }) => `${i.qty}x ${i.name}`).join(", ")}
                   </span>
                 </div>
 
@@ -353,16 +375,19 @@ const DeliveryDashboard = () => {
                   </Button>
                   {nextStatus && (
                     <Button
-                      variant={mapToUiStatus(order.status) === 'transit' ? 'success' : 'accent'}
+                      variant={mapToUiStatus(order?.status as OrderStatus | undefined) === 'transit' ? 'success' : 'accent'}
                       size="sm"
                       className="flex-1"
-                      onClick={() => updateStatus(order._id, nextStatus)}
-                      disabled={actionLoading === order._id}
+                      // onClick={() => updateStatus(order._id, nextStatus)}
+                      // disabled={actionLoading === order._id}
+                      onClick={() => orderId && updateStatus(orderId, nextStatus)}
+                      disabled={!orderId || actionLoading === orderId}
                     >
-                      {actionLoading === order._id ? (
+                      {/* {actionLoading === order._id ? ( */}
+                      {actionLoading === orderId ? (
                         <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
                       ) : (
-                        getActionLabel(order.status)
+                        getActionLabel(order.status as OrderStatus)
                       )}
                     </Button>
                   )}

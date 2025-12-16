@@ -4,6 +4,26 @@ const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3000'
 
 let socket: Socket | null = null;
 
+const base64UrlDecode = (value: string): string => {
+  // Convert base64url -> base64
+  const base64 = value.replace(/-/g, '+').replace(/_/g, '/');
+  // Pad to length multiple of 4
+  const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
+  return atob(padded);
+};
+
+const getUserIdFromJwt = (token: string): string | null => {
+  try {
+    const parts = token.split('.');
+    if (parts.length < 2) return null;
+    const payloadJson = base64UrlDecode(parts[1]);
+    const payload = JSON.parse(payloadJson) as { id?: string; _id?: string; sub?: string };
+    return payload.id || payload._id || payload.sub || null;
+  } catch {
+    return null;
+  }
+};
+
 export const connectSocket = (token: string): Socket => {
   if (socket?.connected) {
     return socket;
@@ -16,6 +36,12 @@ export const connectSocket = (token: string): Socket => {
 
   socket.on('connect', () => {
     console.log('Socket connected:', socket?.id);
+
+    // Join user-specific room so server can emit targeted events.
+    const userId = getUserIdFromJwt(token);
+    if (userId) {
+      socket?.emit('join_room', `user_${userId}`);
+    }
   });
 
   socket.on('disconnect', (reason) => {
@@ -39,7 +65,7 @@ export const disconnectSocket = (): void => {
 export const getSocket = (): Socket | null => socket;
 
 // Socket event types
-export type SocketEvents = 
+export type SocketEvents =
   | 'order_created'
   | 'order_update'
   | 'order_list_update'
@@ -51,7 +77,7 @@ export const subscribeToEvent = <T>(
 ): (() => void) => {
   if (!socket) {
     console.warn('Socket not connected');
-    return () => {};
+    return () => { };
   }
 
   socket.on(event, callback);

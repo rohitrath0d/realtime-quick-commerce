@@ -20,6 +20,7 @@ import {
   LogOut
 } from "lucide-react";
 import { useState } from "react";
+import { useRouter } from 'next/navigation';
 import { useAuth } from "@/providers/AuthProvider";
 
 interface NavItem {
@@ -69,6 +70,7 @@ const roleColors: Record<string, string> = {
 const Sidebar = ({ role }: SidebarProps) => {
   const pathname = usePathname();
   const { user, logout } = useAuth();
+  const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
 
   const navItems = navConfigs[role] || [];
@@ -95,7 +97,7 @@ const Sidebar = ({ role }: SidebarProps) => {
         {!collapsed && (
           <div className="flex items-center gap-2">
             <div className={cn(
-              "w-8 h-8 rounded-lg bg-gradient-to-br flex items-center justify-center",
+              "w-8 h-8 rounded-lg bg-linear-to-br flex items-center justify-center",
               roleColors[role]
             )}>
               <Package className="w-4 h-4 text-white" />
@@ -117,7 +119,7 @@ const Sidebar = ({ role }: SidebarProps) => {
       {!collapsed && (
         <div className="px-4 py-3">
           <span className={cn(
-            "px-3 py-1.5 rounded-full text-xs font-medium text-white bg-gradient-to-r",
+            "px-3 py-1.5 rounded-full text-xs font-medium text-white bg-linear-to-r",
             roleColors[role]
           )}>
             {role.charAt(0).toUpperCase() + role.slice(1)} Panel
@@ -151,7 +153,7 @@ const Sidebar = ({ role }: SidebarProps) => {
       )}>
         {!collapsed && (
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-full bg-linear-to-br from-primary to-primary/60 flex items-center justify-center">
               <Users className="w-5 h-5 text-white" />
             </div>
             <div className="flex-1 min-w-0">
@@ -162,7 +164,8 @@ const Sidebar = ({ role }: SidebarProps) => {
         )}
         <Button
           variant="ghost"
-          onClick={logout}
+          // onClick={logout}\
+          onClick={() => { logout(); router.replace('/login'); }}
           className={cn(
             "w-full justify-start gap-3 text-muted-foreground hover:text-foreground",
             collapsed && "justify-center px-0"

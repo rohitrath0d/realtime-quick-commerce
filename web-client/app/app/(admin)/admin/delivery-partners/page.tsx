@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Users, Search, Phone, Mail, Star, RefreshCw, Package } from "lucide-react";
+import { Users, Search, Phone, Mail, Star, RefreshCw, 
+  // Package 
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { adminApi, DeliveryPartner } from "@/services/api";
@@ -31,18 +33,22 @@ const AdminDeliveryPartnersPage = () => {
   }, [fetchPartners]);
 
   const filteredPartners = partners.filter((partner) => {
-    const matchesSearch = 
+    const matchesSearch =
       partner.name?.toLowerCase().includes(search.toLowerCase()) ||
       partner.email?.toLowerCase().includes(search.toLowerCase()) ||
       partner.phone?.includes(search);
-    const matchesStatus = 
-      statusFilter === "all" || 
-      (statusFilter === "active" && partner.status === "active") ||
-      (statusFilter === "idle" && partner.status !== "active");
+    const matchesStatus =
+      statusFilter === "all" ||
+      // (statusFilter === "active" && partner.status === "active") ||
+      // (statusFilter === "idle" && partner.status !== "active");
+      (statusFilter === "active" && partner.isAvailable === true) ||
+      (statusFilter === "idle" && partner.isAvailable !== true);
     return matchesSearch && matchesStatus;
   });
 
-  const activeCount = partners.filter(p => p.status === "active").length;
+  // const activeCount = partners.filter(p => p.status === "active").length;
+  // isAvailable is maintained on the User model (delivery partners)
+  const activeCount = partners.filter((p) => p.isAvailable === true).length;
   const idleCount = partners.length - activeCount;
 
   if (isLoading) {
@@ -120,7 +126,7 @@ const AdminDeliveryPartnersPage = () => {
           <div key={partner._id} className="glass-card rounded-2xl p-5">
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center">
+                <div className="w-12 h-12 rounded-xl bg-linear-to-br from-primary/10 to-primary/5 flex items-center justify-center">
                   <Users className="w-6 h-6 text-primary" />
                 </div>
                 <div>
@@ -128,12 +134,14 @@ const AdminDeliveryPartnersPage = () => {
                   <span
                     className={cn(
                       "px-2 py-0.5 rounded-full text-xs font-medium",
-                      partner.status === "active"
+                      // partner.status === "active"
+                      partner.isAvailable === true
                         ? "bg-success/15 text-success"
                         : "bg-muted text-muted-foreground"
                     )}
                   >
-                    {partner.status === "active" ? "Active" : "Idle"}
+                    {/* {partner.status === "active" ? "Active" : "Idle"} */}
+                    {partner.isAvailable === true ? "Active" : "Idle"}
                   </span>
                 </div>
               </div>

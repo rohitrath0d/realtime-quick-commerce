@@ -43,10 +43,15 @@ const MyOrdersPage = () => {
     setActionLoading(orderId);
     try {
       const updated = await deliveryApi.updateStatus(orderId, newStatus);
+      console.log("API response from updateStatus:", updated);
       setMyOrders((prev) =>
         prev.map((o) => (o._id === orderId ? updated : o))
       );
       toast.success("Status updated successfully");
+      // Refetch after 500ms to ensure state is synced with server
+      setTimeout(() => {
+        fetchOrders();
+      }, 500);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to update status");
     } finally {
@@ -56,9 +61,6 @@ const MyOrdersPage = () => {
 
   const getNextStatus = (currentStatus: OrderStatus): OrderStatus | null => {
     const flow: Partial<Record<OrderStatus, OrderStatus>> = {
-      PLACED: 'PICKED_UP',
-      STORE_ACCEPTED: 'PICKED_UP',
-      PACKING: 'PICKED_UP',
       PACKED: 'PICKED_UP',
       PICKED_UP: 'ON_THE_WAY',
       ON_THE_WAY: 'DELIVERED',
@@ -68,9 +70,6 @@ const MyOrdersPage = () => {
 
   const getActionLabel = (status: OrderStatus): string => {
     const labels: Partial<Record<OrderStatus, string>> = {
-      PLACED: 'Mark as Picked Up',
-      STORE_ACCEPTED: 'Mark as Picked Up',
-      PACKING: 'Mark as Picked Up',
       PACKED: 'Mark as Picked Up',
       PICKED_UP: 'Start Delivery',
       ON_THE_WAY: 'Mark as Delivered',
@@ -78,7 +77,7 @@ const MyOrdersPage = () => {
     return labels[status] || 'Update';
   };
 
-  const mapToUiStatus = (s: OrderStatus): UIOrderStatus | 'cancelled' => {
+  const mapToUiStatus = (s?: OrderStatus): UIOrderStatus | 'cancelled' => {
     switch (s) {
       case 'PLACED': return 'pending';
       case 'STORE_ACCEPTED': return 'confirmed';
@@ -135,22 +134,27 @@ const MyOrdersPage = () => {
         <div>
           <h2 className="text-xl font-semibold text-foreground mb-4">Active Deliveries</h2>
           <div className="grid md:grid-cols-2 gap-4">
-            {activeDeliveries.map((order) => {
-              const nextStatus = getNextStatus(order.status as OrderStatus);
+            {activeDeliveries.map((order, index) => {
+              const orderId = order?._id || order?.orderId || '';
+              const nextStatus = order?.status ? getNextStatus(order.status as OrderStatus) : null;
 
               return (
-                <div key={order._id} className="glass-card rounded-2xl p-5">
+                // <div key={order._id} className="glass-card rounded-2xl p-5">
+                <div key={orderId || `idx-${index}`} className="glass-card rounded-2xl p-5">
                   <div className="flex items-start justify-between mb-4">
                     <div>
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-sm text-muted-foreground">#{order._id.slice(-8)}</span>
-                        <StatusBadge status={mapToUiStatus(order.status)} pulse={mapToUiStatus(order.status) === 'transit'} />
+                        {/* <span className="text-sm text-muted-foreground">#{order._id.slice(-8)}</span> */}
+                        <span className="text-sm text-muted-foreground">#{orderId ? orderId.slice(-8) : '--------'}</span>
+                        {/* <StatusBadge status={mapToUiStatus(order.status)} pulse={mapToUiStatus(order.status) === 'transit'} /> */}
+                        <StatusBadge status={mapToUiStatus(order?.status as OrderStatus | undefined)} pulse={mapToUiStatus(order?.status as OrderStatus | undefined) === 'transit'} />
                       </div>
                       <h3 className="font-semibold text-foreground">
                         {typeof order.customer !== 'string' ? order.customer?.name : 'Customer'}
                       </h3>
                     </div>
-                    <span className="text-xl font-bold text-primary">${order.total.toFixed(2)}</span>
+                    {/* <span className="text-xl font-bold text-primary">${order.total.toFixed(2)}</span> */}
+                    <span className="text-xl font-bold text-primary">${order.total ? order.total.toFixed(2) : '0.00'}</span>
                   </div>
 
                   <div className="flex items-start gap-2 mb-4 text-sm text-muted-foreground">
@@ -161,7 +165,8 @@ const MyOrdersPage = () => {
                   <div className="flex items-center gap-2 mb-4 text-sm">
                     <Package className="w-4 h-4 text-muted-foreground" />
                     <span className="text-foreground">
-                      {order.items.map((i) => `${i.qty}x ${i.name}`).join(", ")}
+                      {/* {order.items.map((i) => `${i.qty}x ${i.name}`).join(", ")} */}
+                      {(order.items ?? []).map((i) => `${i.qty}x ${i.name}`).join(", ")}
                     </span>
                   </div>
 
@@ -172,13 +177,17 @@ const MyOrdersPage = () => {
                     </Button>
                     {nextStatus && (
                       <Button
-                        variant={mapToUiStatus(order.status) === 'transit' ? 'success' : 'default'}
+                        // variant={mapToUiStatus(order.status) === 'transit' ? 'success' : 'default'}
+                        variant={mapToUiStatus(order?.status as OrderStatus | undefined) === 'transit' ? 'success' : 'default'}
                         size="sm"
                         className="flex-1"
-                        onClick={() => updateStatus(order._id, nextStatus)}
-                        disabled={actionLoading === order._id}
+                        // onClick={() => updateStatus(order._id, nextStatus)}
+                        // disabled={actionLoading === order._id}
+                        onClick={() => orderId && updateStatus(orderId, nextStatus)}
+                        disabled={!orderId || actionLoading === orderId}
                       >
-                        {actionLoading === order._id ? (
+                        {/* {actionLoading === order._id ? ( */}
+                        {actionLoading === orderId ? (
                           <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                         ) : (
                           getActionLabel(order.status)
@@ -207,7 +216,8 @@ const MyOrdersPage = () => {
                 <h3 className="font-semibold text-foreground mb-1">
                   {typeof order.customer !== 'string' ? order.customer?.name : 'Customer'}
                 </h3>
-                <p className="text-lg font-bold text-primary">${order.total.toFixed(2)}</p>
+                {/* <p className="text-lg font-bold text-primary">${order.total.toFixed(2)}</p> */}
+                <p className="text-lg font-bold text-primary">${order.total ? order.total.toFixed(2) : '0.00'}</p>
               </div>
             ))}
           </div>

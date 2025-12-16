@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Package, Upload } from "lucide-react";
+import { ArrowLeft, Package, 
+  // Upload 
+} from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -118,7 +120,7 @@ const AddProductPage = () => {
           />
           {formData.imageUrl && (
             <div className="mt-2">
-              <img 
+              <img
                 src={formData.imageUrl} 
                 alt="Preview" 
                 className="w-32 h-32 rounded-xl object-cover"

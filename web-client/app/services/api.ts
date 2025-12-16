@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import axios from 'axios';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
@@ -64,6 +65,12 @@ export const customerApi = {
 export const storeApi = {
   getStoreOrders: () =>
     api.get('/store/orders').then(res => res.data as { data: Order[]; storeExists: boolean; store?: any }),
+
+  getAllStoreOrders: () =>
+    api.get('/store/orders/all').then(res => res.data as { data: Order[]; storeExists: boolean }),
+
+  getStats: () =>
+    api.get('/store/stats').then(handleData),
 
   acceptOrder: (id: string) =>
     api.post(`/store/orders/${id}/accept`).then(res => res.data.data as Order),

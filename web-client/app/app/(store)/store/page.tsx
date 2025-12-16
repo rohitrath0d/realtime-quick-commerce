@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -24,20 +25,44 @@ const StoreDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [storeInfo, setStoreInfo] = useState<{ name: string; address: string } | null>(null);
   const [noStore, setNoStore] = useState(false);
+  const [stats, setStats] = useState<{
+    totalOrders: number;
+    placed: number;
+    processing: number;
+    packed: number;
+    delivered: number;
+    revenue: number;
+  } | null>(null);
+
   const router = useRouter();
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
     try {
-      const data = await storeApi.getStoreOrders();
-      setOrders(data.data || []);
+      // const data = await storeApi.getStoreOrders();
+      // setOrders(data.data || []);
+      const [storeRes, ordersRes, statsRes] = await Promise.all([
+        storeApi.getStore(),
+        storeApi.getAllStoreOrders(),
+        storeApi.getStats(),
+      ]);
 
-      if (!data.storeExists) {
+      // if (!data.storeExists) {
+      if (!storeRes.exists) {
         setNoStore(true);
       } else {
-        setNoStore(false);
-        setStoreInfo(data.store);
+        // setNoStore(false);
+        // setStoreInfo(data.store);
+        setOrders([]);
+        setStoreInfo(null);
+        setStats(null);
+        return;
       }
+
+      setNoStore(false);
+      setStoreInfo(storeRes.store || null);
+      setOrders(ordersRes.data || []);
+      setStats((statsRes as any)?.data || null);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to load data");
     } finally {
@@ -61,10 +86,14 @@ const StoreDashboard = () => {
   );
 
   // Stats calculations
-  const pendingOrders = orders.filter((o) => o.status === "PLACED").length;
-  const processingOrders = orders.filter((o) => ["STORE_ACCEPTED", "PACKING"].includes(o.status)).length;
-  const completedOrders = orders.filter((o) => o.status === "PACKED").length;
-  const totalRevenue = orders.reduce((sum, o) => sum + o.total, 0);
+  // const pendingOrders = orders.filter((o) => o.status === "PLACED").length;
+  // const processingOrders = orders.filter((o) => ["STORE_ACCEPTED", "PACKING"].includes(o.status)).length;
+  // const completedOrders = orders.filter((o) => o.status === "PACKED").length;
+  // const totalRevenue = orders.reduce((sum, o) => sum + o.total, 0);
+  const pendingOrders = stats?.placed ?? orders.filter((o) => o.status === "PLACED").length;
+  const processingOrders = stats?.processing ?? orders.filter((o) => ["STORE_ACCEPTED", "PACKING"].includes(o.status)).length;
+  const completedOrders = stats?.packed ?? orders.filter((o) => o.status === "PACKED").length;
+  const totalRevenue = stats?.revenue ?? 0;
 
   const recentOrders = orders.slice(0, 5);
 
@@ -220,14 +249,14 @@ const StoreDashboard = () => {
                   <div className={cn(
                     "w-10 h-10 rounded-lg flex items-center justify-center",
                     order.status === "PLACED" ? "bg-yellow-100 dark:bg-yellow-900/30" :
-                    order.status === "PACKED" ? "bg-green-100 dark:bg-green-900/30" :
-                    "bg-blue-100 dark:bg-blue-900/30"
+                      order.status === "PACKED" ? "bg-green-100 dark:bg-green-900/30" :
+                        "bg-blue-100 dark:bg-blue-900/30"
                   )}>
                     <Package className={cn(
                       "w-5 h-5",
                       order.status === "PLACED" ? "text-yellow-600" :
-                      order.status === "PACKED" ? "text-green-600" :
-                      "text-blue-600"
+                        order.status === "PACKED" ? "text-green-600" :
+                          "text-blue-600"
                     )} />
                   </div>
                   <div>
@@ -238,7 +267,8 @@ const StoreDashboard = () => {
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="font-bold">${order.total.toFixed(2)}</p>
+                  {/* <p className="font-bold">${order.total.toFixed(2)}</p> */}
+                  <p className="font-bold">${order.total ? order.total.toFixed(2) : '0.00'}</p>
                   <p className="text-xs text-muted-foreground">
                     {order.createdAt ? new Date(order.createdAt).toLocaleTimeString() : ''}
                   </p>

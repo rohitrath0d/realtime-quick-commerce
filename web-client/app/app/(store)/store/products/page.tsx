@@ -122,7 +122,7 @@ const StoreProductsPage = () => {
                     className="w-16 h-16 rounded-xl object-cover"
                   />
                 ) : (
-                  <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center">
+                  <div className="w-16 h-16 rounded-xl bg-linear-to-br from-primary/10 to-primary/5 flex items-center justify-center">
                     <Package className="w-8 h-8 text-primary" />
                   </div>
                 )}

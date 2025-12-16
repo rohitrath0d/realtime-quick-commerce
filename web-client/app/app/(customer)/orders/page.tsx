@@ -61,7 +61,6 @@ const CustomerOrders = () => {
         setCustomerOrders((s) => s.map((o) => (o._id === updatedOrder._id ? updatedOrder : o)));
       }
     }, // order_update
-    (list) => setCustomerOrders(list.filter((o) => (typeof o.customer === 'string' ? o.customer === user?._id : (o.customer as any)?._id === user?._id))) // order_list_update
   );
 
   if (unauthorized) {
@@ -143,7 +142,7 @@ const CustomerOrders = () => {
                   <h2 className="text-xl font-bold text-foreground">Order #{selectedOrder._id}</h2>
                   <p className="text-sm text-muted-foreground">{selectedOrder.createdAt}</p>
                 </div>
-                <span className="text-2xl font-bold text-primary">${selectedOrder.total.toFixed(2)}</span>
+                <span className="text-2xl font-bold text-primary">${selectedOrder.total ? selectedOrder.total.toFixed(2) : '0.00'}</span>
               </div>
 
               {/* Tracker */}
