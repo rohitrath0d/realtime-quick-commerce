@@ -1,6 +1,6 @@
+import 'dotenv/config';
 import express from 'express';
 import http from 'http';
-import dotenv from 'dotenv';
 import { Server } from 'socket.io';
 import cors from 'cors';
 import { connectDB } from './connections/db/db-init.js';
@@ -12,8 +12,6 @@ import deliveryRoutes from './routes/delivery-routes.js'
 import adminRoutes from './routes/admin-routes.js'
 import storeRoutes from './routes/store-routes.js'
 import paymentRoutes from './routes/payment-routes.js'
-
-
 
 dotenv.config();
 

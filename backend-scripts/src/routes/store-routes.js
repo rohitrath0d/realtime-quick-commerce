@@ -1,7 +1,7 @@
 import express from 'express';
 import { protectAuth } from '../middlewares/auth-middleware.js'
 import { authorizeRole } from '../middlewares/role-middleware.js';
-import { createStore, deleteStore, getStore, listStoreOrders, markPacked, startPacking } from '../controllers/store-controller.js';
+import { acceptOrder, createStore, deleteStore, getStore, getStoreStats, listStoreOrders, markPacked, startPacking } from '../controllers/store-controller.js';
 import {
   acceptOrder,
   // updateOrderStatus 
@@ -16,6 +16,8 @@ router.get("/", protectAuth, authorizeRole("STORE"), getStore); //  GET / → ge
 
 // Orders workflow
 router.get("/orders", protectAuth, authorizeRole("STORE"), listStoreOrders);  // get orders for the store - Returns only orders associated with the store.
+router.get("/orders/all", protectAuth, authorizeRole("STORE"), listAllStoreOrders);
+router.get("/stats", protectAuth, authorizeRole("STORE"), getStoreStats);
 
 router.post("/orders/:id/accept", protectAuth, authorizeRole("STORE"), acceptOrder);
 router.post("/orders/:id/packing", protectAuth, authorizeRole("STORE"), startPacking);
