@@ -24,29 +24,37 @@ app.use(express.json());
 // cors config
 app.use(cors({
   origin: function (origin, callback) {
-    // allow requests with no origin (postman, curl)
-    if (!origin) return callback(null, true);
-
-    if (allowedOrigins.includes(origin)) {
+    // Allow same-origin, curl, server-to-server
+    if (!origin) {
       return callback(null, true);
-    } else {
-      return callback(new Error('Not allowed by CORS'));
     }
+
+    if (allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    // IMPORTANT: do NOT throw
+    return callback(null, false);
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
 }));
 
+// Preflight
+app.options('*', cors());
 
 const httpServer = http.createServer(app);
 // const socketConnection= socketIO(httpServer)
 const socketConnection = new Server(httpServer, {
   cors: {
-    // origin: '*',  // for dev env only
-    origin: process.env.NEXT_FRONTEND_URL,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS']
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      return callback(null, false);
+    },
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    credentials: true,
   }
-})
+});
 
 const port = process.env.SERVER_PORT || 4000;
 
