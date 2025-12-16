@@ -1,6 +1,6 @@
 import express from 'express';
 import { protectAuth } from '../middlewares/auth-middleware.js'
-import { acceptOrder, getMyAssignedOrders, getUnassignedDeliveries, updateOrderStatus, 
+import { acceptOrder, getDeliveryProfile, getDeliveryStats, getMyAssignedOrders, getUnassignedDeliveries, updateOrderStatus, 
   // updateOrderStatus 
 } from '../controllers/delivery-controller.js';
 import { authorizeRole } from '../middlewares/role-middleware.js';

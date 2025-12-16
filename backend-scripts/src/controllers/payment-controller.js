@@ -2,14 +2,32 @@ import Razorpay from 'razorpay';
 import crypto from 'crypto';
 
 // Initialize Razorpay instance
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID || 'rzp_test_demo',
-  key_secret: process.env.RAZORPAY_KEY_SECRET || 'demo_secret',
-});
+// const razorpay = new Razorpay({
+//   key_id: process.env.RAZORPAY_KEY_ID || 'rzp_test_demo',
+//   key_secret: process.env.RAZORPAY_KEY_SECRET || 'demo_secret',
+// });
+
+let razorpay;
+
+const getRazorpayClient = () => {
+  const key_id = process.env.RAZORPAY_KEY_ID;
+  const key_secret = process.env.RAZORPAY_KEY_SECRET;
+
+  if (!key_id || !key_secret) {
+    throw new Error('Razorpay keys are not configured (RAZORPAY_KEY_ID/RAZORPAY_KEY_SECRET)');
+  }
+
+  if (!razorpay) {
+    razorpay = new Razorpay({ key_id, key_secret });
+  }
+
+  return razorpay;
+};
 
 // Create a Razorpay order
 export const createOrder = async (req, res) => {
   try {
+    const razorpayClient = getRazorpayClient();
     const { amount, currency = 'INR', receipt } = req.body;
 
     if (!amount) {
@@ -28,7 +46,8 @@ export const createOrder = async (req, res) => {
       },
     };
 
-    const order = await razorpay.orders.create(options);
+    // const order = await razorpay.orders.create(options);
+    const order = await razorpayClient.orders.create(options);
 
     res.status(201).json({
       success: true,
@@ -62,8 +81,19 @@ export const verifyPayment = async (req, res) => {
 
     // Verify signature
     const body = razorpay_order_id + '|' + razorpay_payment_id;
+
+    const secret = process.env.RAZORPAY_KEY_SECRET;
+
+    if (!secret) {
+      return res.status(500).json({
+        success: false,
+        message: 'Razorpay key secret is not configured',
+      });
+    }
+
     const expectedSignature = crypto
-      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET || 'demo_secret')
+      // .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET || 'demo_secret')
+      .createHmac('sha256', secret)
       .update(body.toString())
       .digest('hex');
 
@@ -96,6 +126,7 @@ export const verifyPayment = async (req, res) => {
 // Get payment details
 export const getPaymentDetails = async (req, res) => {
   try {
+    const razorpayClient = getRazorpayClient();
     const { paymentId } = req.params;
 
     if (!paymentId) {
@@ -105,7 +136,8 @@ export const getPaymentDetails = async (req, res) => {
       });
     }
 
-    const payment = await razorpay.payments.fetch(paymentId);
+    // const payment = await razorpay.payments.fetch(paymentId);
+    const payment = await razorpayClient.payments.fetch(paymentId);
 
     res.status(200).json({
       success: true,
@@ -123,6 +155,7 @@ export const getPaymentDetails = async (req, res) => {
 // Refund a payment
 export const refundPayment = async (req, res) => {
   try {
+    const razorpayClient = getRazorpayClient();
     const { paymentId, amount } = req.body;
 
     if (!paymentId) {
@@ -140,7 +173,8 @@ export const refundPayment = async (req, res) => {
       refundOptions.amount = Math.round(amount * 100);
     }
 
-    const refund = await razorpay.payments.refund(paymentId, refundOptions);
+    // const refund = await razorpay.payments.refund(paymentId, refundOptions);
+    const refund = await razorpayClient.payments.refund(paymentId, refundOptions);
 
     res.status(200).json({
       success: true,

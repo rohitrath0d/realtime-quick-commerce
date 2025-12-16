@@ -40,7 +40,7 @@ export const registerController = async (req, res) => {
     res.status(201).json({
       success: true,
       user: {
-        id: newUser._id,
+        _id: newUser._id,
         name: newUser.name,
         email: newUser.email,
         role: newUser.role
@@ -83,7 +83,7 @@ export const loginController = async (req, res) => {
     res.status(200).json({
       success: true,
       user: {
-        id: loginUser._id,
+        _id: loginUser._id,
         name: loginUser.name,
         email: loginUser.email,
         role: loginUser.role
