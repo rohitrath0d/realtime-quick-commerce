@@ -2,7 +2,7 @@
 "use client";
 
 import { Suspense } from "react";
-import Dashboard from "./dashboard/page";  // Import your dashboard component
+import Dashboard from "./customer/page";  // Import your dashboard component
 
 const DefaultLayout = () => {
   return (

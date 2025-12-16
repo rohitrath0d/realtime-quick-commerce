@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect } from "react";
-import Header from "@/components/layout/Header";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import Sidebar from "@/components/layout/Sidebar";
 import { connectSocket } from '@/services/socket';
 import { useAuth } from '@/providers/AuthProvider';
 import { ReactNode } from "react";
@@ -22,10 +22,16 @@ const DeliveryLayout = ({ children }: DeliveryLayoutProps) => {
   }, [user?.role, token]);
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      <main className="pt-20"><ProtectedRoute allowedRoles={["delivery"]}>{children}</ProtectedRoute></main>
-    </div>
+    <ProtectedRoute allowedRoles={["delivery"]}>
+      <div className="min-h-screen bg-background">
+        <Sidebar role="delivery" />
+        <main className="ml-64 min-h-screen transition-all duration-300">
+          <div className="p-6">
+            {children}
+          </div>
+        </main>
+      </div>
+    </ProtectedRoute>
   );
 };
 

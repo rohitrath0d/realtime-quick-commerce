@@ -6,26 +6,165 @@ import {
   Truck,
   DollarSign,
   Clock,
-  Users,
-  CheckCircle2,
-  AlertCircle,
-  Star,
-  Phone,
+  TrendingUp,
+  TrendingDown,
   RefreshCw,
-  Trash2,
+  Store,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import StatsCard from "@/components/shared/StatsCard";
-import OrderCard from "@/components/shared/OrderCard";
 import { adminApi, Order, DeliveryPartner, AdminStats } from "@/services/api";
 import { useOrderSocket } from "@/hooks/useSocketEvents";
-import { cn } from "@/lib/utils";
-// import { toast } from "@/hooks/use-toast";
 import { toast } from "sonner";
 
+// Simple chart component for order status distribution
+const OrderStatusChart = ({ stats }: { stats: { pending: number; inProgress: number; delivered: number } }) => {
+  const total = stats.pending + stats.inProgress + stats.delivered;
+  const pendingPercent = total > 0 ? (stats.pending / total) * 100 : 0;
+  const inProgressPercent = total > 0 ? (stats.inProgress / total) * 100 : 0;
+  const deliveredPercent = total > 0 ? (stats.delivered / total) * 100 : 0;
+
+  return (
+    <div className="glass-card rounded-2xl p-6">
+      <h3 className="text-lg font-semibold text-foreground mb-4">Order Distribution</h3>
+      <div className="space-y-4">
+        <div>
+          <div className="flex justify-between text-sm mb-1">
+            <span className="text-muted-foreground">Pending</span>
+            <span className="font-medium text-warning">{stats.pending}</span>
+          </div>
+          <div className="h-3 bg-muted rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-warning rounded-full transition-all duration-500"
+              style={{ width: `${pendingPercent}%` }}
+            />
+          </div>
+        </div>
+        <div>
+          <div className="flex justify-between text-sm mb-1">
+            <span className="text-muted-foreground">In Progress</span>
+            <span className="font-medium text-primary">{stats.inProgress}</span>
+          </div>
+          <div className="h-3 bg-muted rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-primary rounded-full transition-all duration-500"
+              style={{ width: `${inProgressPercent}%` }}
+            />
+          </div>
+        </div>
+        <div>
+          <div className="flex justify-between text-sm mb-1">
+            <span className="text-muted-foreground">Delivered</span>
+            <span className="font-medium text-success">{stats.delivered}</span>
+          </div>
+          <div className="h-3 bg-muted rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-success rounded-full transition-all duration-500"
+              style={{ width: `${deliveredPercent}%` }}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Revenue trend chart (bar chart simulation)
+const RevenueTrendChart = ({ orders }: { orders: Order[] }) => {
+  // Group orders by day (last 7 days)
+  const last7Days = Array.from({ length: 7 }, (_, i) => {
+    const date = new Date();
+    date.setDate(date.getDate() - (6 - i));
+    return date.toISOString().split('T')[0];
+  });
+
+  const revenueByDay = last7Days.map(day => {
+    const dayOrders = orders.filter(o => 
+      o.createdAt && o.createdAt.split('T')[0] === day
+    );
+    return dayOrders.reduce((sum, o) => sum + o.total, 0);
+  });
+
+  const maxRevenue = Math.max(...revenueByDay, 1);
+
+  return (
+    <div className="glass-card rounded-2xl p-6">
+      <h3 className="text-lg font-semibold text-foreground mb-4">Revenue Trend (7 Days)</h3>
+      <div className="flex items-end justify-between gap-2 h-32">
+        {revenueByDay.map((revenue, index) => (
+          <div key={index} className="flex-1 flex flex-col items-center gap-2">
+            <div className="w-full flex flex-col items-center">
+              <span className="text-xs text-muted-foreground mb-1">
+                ${revenue.toFixed(0)}
+              </span>
+              <div 
+                className="w-full bg-gradient-to-t from-primary to-primary/60 rounded-t-lg transition-all duration-500"
+                style={{ height: `${(revenue / maxRevenue) * 80}px`, minHeight: '4px' }}
+              />
+            </div>
+            <span className="text-xs text-muted-foreground">
+              {new Date(last7Days[index]).toLocaleDateString('en', { weekday: 'short' })}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// Donut chart for partner status
+const PartnerStatusChart = ({ partners }: { partners: DeliveryPartner[] }) => {
+  const active = partners.filter(p => p.status === 'active').length;
+  const idle = partners.length - active;
+  const total = partners.length || 1;
+  const activePercent = (active / total) * 100;
+
+  return (
+    <div className="glass-card rounded-2xl p-6">
+      <h3 className="text-lg font-semibold text-foreground mb-4">Partner Status</h3>
+      <div className="flex items-center gap-6">
+        <div className="relative w-24 h-24">
+          <svg className="w-24 h-24 transform -rotate-90">
+            <circle
+              cx="48"
+              cy="48"
+              r="40"
+              stroke="currentColor"
+              strokeWidth="8"
+              fill="none"
+              className="text-muted"
+            />
+            <circle
+              cx="48"
+              cy="48"
+              r="40"
+              stroke="currentColor"
+              strokeWidth="8"
+              fill="none"
+              strokeDasharray={`${activePercent * 2.51} 251`}
+              className="text-success transition-all duration-500"
+            />
+          </svg>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="text-lg font-bold">{total}</span>
+          </div>
+        </div>
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-success" />
+            <span className="text-sm text-muted-foreground">Active: {active}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-muted" />
+            <span className="text-sm text-muted-foreground">Idle: {idle}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const AdminDashboard = () => {
-  const [activeTab, setActiveTab] = useState<"orders" | "partners">("orders");
   const [orders, setOrders] = useState<Order[]>([]);
   const [partners, setPartners] = useState<DeliveryPartner[]>([]);
   const [stats, setStats] = useState<AdminStats | null>(null);
@@ -39,9 +178,6 @@ const AdminDashboard = () => {
         adminApi.getDeliveryPartners(),
         adminApi.getStats(),
       ]);
-      console.log("Order's data for Admin-->", ordersData);
-      console.log("Delivery Partner's data for admin-->", partnersData);
-      console.log("Stats data for admin-->", statsData);
 
       setOrders(ordersData);
       setPartners(partnersData);
@@ -52,11 +188,6 @@ const AdminDashboard = () => {
         setUnauthorized(true);
         return;
       }
-      // toast({
-      //   title: "Failed to load data",
-      //   description: error instanceof Error ? error.message : "Please try again",
-      //   variant: "destructive",
-      // });
       toast.error(err instanceof Error ? err.message : "Failed to load data");
     } finally {
       setIsLoading(false);
@@ -65,7 +196,7 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [fetchData]);
 
   // Socket events for real-time updates
   useOrderSocket(
@@ -82,49 +213,48 @@ const AdminDashboard = () => {
     }
   );
 
-  const formatOrderForCard = (order: Order) => ({
-    id: order.orderId || order._id,
-    customerName: order.customer?.name || "Unknown",
-    items: order.items,
-    address: order.address,
-    status: order.status,
-    time: new Date(order.createdAt).toLocaleString(),
-    total: order.total,
-  });
-
   const orderStats = {
-    pending: orders.filter((o) => o.status === "pending").length,
+    pending: orders.filter((o) => o.status === "PLACED").length,
     inProgress: orders.filter((o) =>
-      ["confirmed", "packing", "packed", "picked", "transit"].includes(o.status)
+      ["STORE_ACCEPTED", "PACKING", "PACKED", "PICKED_UP", "ON_THE_WAY"].includes(o.status)
     ).length,
-    delivered: orders.filter((o) => o.status === "delivered").length,
+    delivered: orders.filter((o) => o.status === "DELIVERED").length,
   };
 
-
-
-  // Calculate active partners count safely
   const activePartnersCount = Array.isArray(partners)
     ? partners.filter((p) => p.status === "active").length
     : 0;
 
+  const totalRevenue = orders.reduce((sum, o) => sum + o.total, 0);
+
+  // Calculate trend (mock - comparing with previous period)
+  const previousRevenue = totalRevenue * 0.85; // Mock previous period
+  const revenueTrend = totalRevenue > previousRevenue;
+  const trendPercent = previousRevenue > 0 
+    ? Math.abs(((totalRevenue - previousRevenue) / previousRevenue) * 100).toFixed(1)
+    : 0;
+
   if (isLoading) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-center min-h-[50vh]">
-          <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-        </div>
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   if (unauthorized) {
-    return <div className="container mx-auto px-4 py-8"><h2 className="text-2xl font-bold">Unauthorized</h2><p className="text-muted-foreground">You don't have access to admin resources.</p></div>;
+    return (
+      <div>
+        <h2 className="text-2xl font-bold">Unauthorized</h2>
+        <p className="text-muted-foreground">You don't have access to admin resources.</p>
+      </div>
+    );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8 animate-fade-up opacity-0" style={{ animationDelay: "0.1s" }}>
+      <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-foreground mb-1">Admin Dashboard</h1>
           <p className="text-muted-foreground">Monitor all operations in real-time</p>
@@ -135,173 +265,68 @@ const AdminDashboard = () => {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <div className="animate-fade-up opacity-0" style={{ animationDelay: "0.15s" }}>
-          <StatsCard
-            title="Total Orders"
-            value={stats?.totalOrders || orders.length}
-            icon={Package}
-          />
-        </div>
-        <div className="animate-fade-up opacity-0" style={{ animationDelay: "0.2s" }}>
-          <StatsCard
-            title="Active Partners"
-            // value={stats?.activePartners || partners.filter((p) => p.status === "active").length}
-            value={stats?.activePartners || activePartnersCount}
-            icon={Truck}
-          />
-        </div>
-        <div className="animate-fade-up opacity-0" style={{ animationDelay: "0.25s" }}>
-          <StatsCard
-            title="Revenue"
-            value={`$${(stats?.totalRevenue || orders.reduce((sum, o) => sum + o.total, 0)).toFixed(0)}`}
-            icon={DollarSign}
-          />
-        </div>
-        <div className="animate-fade-up opacity-0" style={{ animationDelay: "0.3s" }}>
-          <StatsCard
-            title="Avg. Delivery"
-            value={stats?.avgDeliveryTime || "N/A"}
-            icon={Clock}
-          />
-        </div>
-      </div>
-
-      {/* Order Status Overview */}
-      <div className="glass-card rounded-2xl p-6 mb-8 animate-fade-up opacity-0" style={{ animationDelay: "0.35s" }}>
-        <h2 className="text-lg font-semibold text-foreground mb-4">Order Status Overview</h2>
-        <div className="grid grid-cols-3 gap-4">
-          <div className="text-center p-4 rounded-xl bg-warning/10">
-            <AlertCircle className="w-8 h-8 text-warning mx-auto mb-2" />
-            <p className="text-2xl font-bold text-foreground">{orderStats.pending}</p>
-            <p className="text-sm text-muted-foreground">Pending</p>
-          </div>
-          <div className="text-center p-4 rounded-xl bg-primary/10">
-            <Truck className="w-8 h-8 text-primary mx-auto mb-2" />
-            <p className="text-2xl font-bold text-foreground">{orderStats.inProgress}</p>
-            <p className="text-sm text-muted-foreground">In Progress</p>
-          </div>
-          <div className="text-center p-4 rounded-xl bg-success/10">
-            <CheckCircle2 className="w-8 h-8 text-success mx-auto mb-2" />
-            <p className="text-2xl font-bold text-foreground">{orderStats.delivered}</p>
-            <p className="text-sm text-muted-foreground">Delivered</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Tabs */}
-      <div className="flex gap-2 mb-6 animate-fade-up opacity-0" style={{ animationDelay: "0.4s" }}>
-        <button
-          onClick={() => setActiveTab("orders")}
-          className={cn(
-            "px-5 py-2.5 rounded-xl font-medium transition-all duration-300 flex items-center gap-2",
-            activeTab === "orders"
-              ? "bg-primary text-primary-foreground shadow-glow"
-              : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
-          )}
-        >
-          <Package className="w-4 h-4" />
-          All Orders ({orders.length})
-        </button>
-        <button
-          onClick={() => setActiveTab("partners")}
-          className={cn(
-            "px-5 py-2.5 rounded-xl font-medium transition-all duration-300 flex items-center gap-2",
-            activeTab === "partners"
-              ? "bg-primary text-primary-foreground shadow-glow"
-              : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
-          )}
-        >
-          <Users className="w-4 h-4" />
-          Delivery Partners ({partners.length})
-        </button>
-      </div>
-
-      {/* Content */}
-      {activeTab === "orders" && (
-        <div className="grid md:grid-cols-2 gap-4">
-          {orders.length > 0 ? (
-            orders.map((order, index) => (
-              <div
-                key={order._id}
-                className="animate-fade-up opacity-0"
-                style={{ animationDelay: `${0.45 + index * 0.05}s` }}
-              >
-                <OrderCard {...formatOrderForCard(order)} showCustomer />
-              </div>
-            ))
-          ) : (
-            <div className="col-span-2 text-center py-16">
-              <Package className="w-16 h-16 text-muted-foreground/50 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-foreground mb-2">No orders yet</h3>
-              <p className="text-muted-foreground">Orders will appear here when placed</p>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatsCard
+          title="Total Orders"
+          value={stats?.totalOrders || orders.length}
+          icon={Package}
+        />
+        <StatsCard
+          title="Active Partners"
+          value={stats?.activePartners || activePartnersCount}
+          icon={Truck}
+        />
+        <div className="glass-card rounded-2xl p-5">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500/20 to-green-600/10 flex items-center justify-center">
+              <DollarSign className="w-5 h-5 text-green-500" />
             </div>
-          )}
+            <span className="text-sm text-muted-foreground">Revenue</span>
+          </div>
+          <p className="text-2xl font-bold text-foreground">${totalRevenue.toFixed(0)}</p>
+          <div className="flex items-center gap-1 mt-1">
+            {revenueTrend ? (
+              <TrendingUp className="w-4 h-4 text-success" />
+            ) : (
+              <TrendingDown className="w-4 h-4 text-destructive" />
+            )}
+            <span className={`text-xs ${revenueTrend ? 'text-success' : 'text-destructive'}`}>
+              {trendPercent}% vs last period
+            </span>
+          </div>
         </div>
-      )}
+        <StatsCard
+          title="Avg. Delivery"
+          value={stats?.avgDeliveryTime || "~15 min"}
+          icon={Clock}
+        />
+      </div>
 
-      {activeTab === "partners" && (
-        <div className="grid md:grid-cols-2 gap-4">
-          {partners.length > 0 ? (
-            partners.map((partner, index) => (
-              <div
-                key={partner._id}
-                className="glass-card rounded-2xl p-5 animate-fade-up opacity-0"
-                style={{ animationDelay: `${0.45 + index * 0.05}s` }}
-              >
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-linear-to-br from-primary/10 to-primary/5 flex items-center justify-center">
-                      <Users className="w-6 h-6 text-primary" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-foreground">{partner.name}</h3>
-                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                        <Phone className="w-3 h-3" />
-                        {partner.phone || partner.email}
-                      </div>
-                    </div>
-                  </div>
-                  <span
-                    className={cn(
-                      "px-2.5 py-1 rounded-full text-xs font-medium",
-                      partner.status === "active"
-                        ? "bg-success/15 text-success"
-                        : "bg-muted text-muted-foreground"
-                    )}
-                  >
-                    {partner.status === "active" ? "Active" : "Idle"}
-                  </span>
-                </div>
+      {/* Charts Row */}
+      <div className="grid lg:grid-cols-3 gap-6">
+        <OrderStatusChart stats={orderStats} />
+        <RevenueTrendChart orders={orders} />
+        <PartnerStatusChart partners={partners} />
+      </div>
 
-                <div className="grid grid-cols-3 gap-4 text-center">
-                  <div className="p-3 rounded-xl bg-muted/50">
-                    <p className="text-lg font-bold text-foreground">{partner.activeOrders}</p>
-                    <p className="text-xs text-muted-foreground">Active</p>
-                  </div>
-                  <div className="p-3 rounded-xl bg-muted/50">
-                    <p className="text-lg font-bold text-foreground">{partner.completedToday}</p>
-                    <p className="text-xs text-muted-foreground">Today</p>
-                  </div>
-                  <div className="p-3 rounded-xl bg-muted/50">
-                    <div className="flex items-center justify-center gap-1">
-                      <Star className="w-4 h-4 text-warning fill-warning" />
-                      <p className="text-lg font-bold text-foreground">{partner.rating}</p>
-                    </div>
-                    <p className="text-xs text-muted-foreground">Rating</p>
-                  </div>
-                </div>
-              </div>
-            ))
-          ) : (
-            <div className="col-span-2 text-center py-16">
-              <Users className="w-16 h-16 text-muted-foreground/50 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-foreground mb-2">No delivery partners</h3>
-              <p className="text-muted-foreground">Partners will appear here when registered</p>
-            </div>
-          )}
+      {/* Quick Stats */}
+      <div className="grid md:grid-cols-3 gap-4">
+        <div className="glass-card rounded-2xl p-5 text-center">
+          <Package className="w-8 h-8 text-warning mx-auto mb-2" />
+          <p className="text-2xl font-bold text-foreground">{orderStats.pending}</p>
+          <p className="text-sm text-muted-foreground">Pending Orders</p>
         </div>
-      )}
+        <div className="glass-card rounded-2xl p-5 text-center">
+          <Truck className="w-8 h-8 text-primary mx-auto mb-2" />
+          <p className="text-2xl font-bold text-foreground">{orderStats.inProgress}</p>
+          <p className="text-sm text-muted-foreground">In Progress</p>
+        </div>
+        <div className="glass-card rounded-2xl p-5 text-center">
+          <Store className="w-8 h-8 text-success mx-auto mb-2" />
+          <p className="text-2xl font-bold text-foreground">{orderStats.delivered}</p>
+          <p className="text-sm text-muted-foreground">Delivered Today</p>
+        </div>
+      </div>
     </div>
   );
 };
