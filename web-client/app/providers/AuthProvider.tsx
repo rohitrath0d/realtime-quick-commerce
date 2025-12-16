@@ -49,17 +49,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const response = await authApi.login(email, password);
     localStorage.setItem('token', response.token);
     setToken(response.token);
-    const normalizedUser = { ...response.user, role: String(response.user.role).trim() };
+    const normalizedUser = { ...response.user, role: String(response.user.role).trim().toLowerCase() };
     setUser(normalizedUser);
     // Do not auto-connect socket here; dashboards will connect after role validation
     return { ...response, user: normalizedUser };
   };
 
-  const register = async (data: { name: string; email: string; password: string; role: 'CUSTOMER' | 'STORE' | 'DELIVERY'; phone?: string }) => {
-    const response = await authApi.register(data);
+  const register = async (data: { name: string; email: string; password: string; role: 'customer' | 'store' | 'delivery'; phone?: string }) => {
+    const payload = { ...data, role: data.role.toUpperCase() };
+    const response = await authApi.register(payload);
     localStorage.setItem('token', response.token);
     setToken(response.token);
-    const normalizedUser = { ...response.user, role: String(response.user.role).trim() };
+    const normalizedUser = { ...response.user, role: String(response.user.role).trim().toLowerCase() };
     setUser(normalizedUser);
     return { ...response, user: normalizedUser };
   };

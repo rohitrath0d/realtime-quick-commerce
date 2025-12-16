@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Eye, EyeOff, LogIn, Zap } from 'lucide-react';
@@ -11,7 +11,7 @@ import { useAuth } from '@/providers/AuthProvider';
 // import { toast } from '@/hooks/use-toast';
 import { toast } from 'sonner';
 
-const LoginPage = () => {
+const LoginPageInner = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -180,4 +180,17 @@ const LoginPage = () => {
   );
 };
 
-export default LoginPage;
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-background px-4 py-12">
+          <div className="w-full max-w-md" />
+        </div>
+      }
+    >
+      <LoginPageInner />
+    </Suspense>
+  );
+}

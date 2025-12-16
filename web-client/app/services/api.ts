@@ -62,16 +62,8 @@ export const customerApi = {
 
 // Store
 export const storeApi = {
-  // return orders array directly
-  // getStoreOrders: () => api.get('/store/orders').then((res) => res.data.data),
-  // acceptOrder: (id: string) => api.post(`/store/orders/${id}/accept`).then(handleData),
-  // startPacking: (id: string) => api.post(`/store/orders/${id}/packing`).then(handleData),
-  // markAsPacked: (id: string) => api.post(`/store/orders/${id}/packed`).then(handleData),
-  // createStore: (data: CreateStoreData) => api.post('/store', data).then(handleData),
-  // deleteStore: (id: string) => api.delete(`/store/${id}`).then(handleData),
-
   getStoreOrders: () =>
-    api.get('/store/orders').then(res => res.data.data as Order),
+    api.get('/store/orders').then(res => res.data as { data: Order[]; storeExists: boolean; store?: any }),
 
   acceptOrder: (id: string) =>
     api.post(`/store/orders/${id}/accept`).then(res => res.data.data as Order),
@@ -82,10 +74,27 @@ export const storeApi = {
   markAsPacked: (id: string) =>
     api.post(`/store/orders/${id}/packed`).then(res => res.data.data as Order),
 
-  createStore: (data: CreateStoreData) => api.post('/store', data).then(handleData),
-  deleteStore: (id: string) => api.delete(`/store/${id}`).then(handleData),
+  getStore: () =>
+    api.get('/store').then(res => res.data as { exists: boolean; store?: any }),
 
+  createStore: (data: CreateStoreData) => 
+    api.post('/store', data).then(handleData),
 
+  deleteStore: (id: string) => 
+    api.delete(`/store/${id}`).then(handleData),
+
+  // Product management
+  getProducts: () =>
+    api.get('/product').then(res => res.data.data),
+
+  createProduct: (data: CreateProductData) =>
+    api.post('/product', data).then(handleData),
+
+  updateProduct: (id: string, data: Partial<CreateProductData>) =>
+    api.put(`/product/${id}`, data).then(handleData),
+
+  deleteProduct: (id: string) =>
+    api.delete(`/product/${id}`).then(handleData),
 };
 // console.log("Get store orders--> ", storeApi.getStoreOrders);
 // console.log("Get Accept Store orders--> ", storeApi.acceptOrder);
@@ -103,11 +112,6 @@ export const deliveryApi = {
 
 // Admin
 export const adminApi = {
-  // getAllOrders: (status?: string) => api.get(`/admin/orders${status ? `?status=${status}` : ''}`).then((res) => res.data.data),
-  // getDeliveryPartners: () => api.get('/admin/delivery-partners').then(handleData),
-  // getStats: () => api.get('/admin/live-stats').then(handleData),
-  // deleteStore: (id: string) => api.delete(`/admin/stores/${id}`).then(handleData),
-
   getAllOrders: (status?: string) =>
     api
       .get(`/admin/orders${status ? `?status=${status}` : ""}`)
@@ -123,9 +127,29 @@ export const adminApi = {
       .get("/admin/live-stats")
       .then((res) => res.data as AdminStats),
 
+  getAllStores: () =>
+    api
+      .get("/admin/stores")
+      .then((res) => res.data.data),
+
   deleteStore: (id: string) =>
     api.delete(`/admin/stores/${id}`).then((res) => res.data),
 
+};
+
+// Payment
+export const paymentApi = {
+  createOrder: (amount: number, currency = 'INR') =>
+    api.post('/payment/create-order', { amount, currency }).then(handleData),
+
+  verifyPayment: (data: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string }) =>
+    api.post('/payment/verify', data).then(handleData),
+
+  getPaymentDetails: (paymentId: string) =>
+    api.get(`/payment/details/${paymentId}`).then(handleData),
+
+  refundPayment: (paymentId: string, amount?: number) =>
+    api.post('/payment/refund', { paymentId, amount }).then(handleData),
 };
 
 // Products (public)
@@ -176,8 +200,9 @@ export type Order = {
 };
 
 export type PlaceOrderData = {
-  items: { productId: string; quantity: number }[];
+  items: { productId: string; name?: string; quantity: number; price?: number }[];
   address?: string;
+  paymentId?: string;
 };
 
 export type DeliveryPartner = {
@@ -185,6 +210,10 @@ export type DeliveryPartner = {
   name: string;
   email?: string;
   phone?: string;
+  status?: 'active' | 'idle' | string;
+  activeOrders?: number;
+  completedToday?: number;
+  rating?: number;
 };
 
 export type AdminStats = {
@@ -192,11 +221,20 @@ export type AdminStats = {
   placed: number;
   packed: number;
   delivered: number;
+  activePartners?: number;
+  avgDeliveryTime?: string;
 };
 
 export type CreateStoreData = {
   name: string;
   address: string;
+};
+
+export type CreateProductData = {
+  name: string;
+  description?: string;
+  price: number;
+  imageUrl?: string;
 };
 
 export default api;
