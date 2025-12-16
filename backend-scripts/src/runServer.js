@@ -56,8 +56,19 @@ app.get('/', (req, res) => {
 
 app.get('/health', (req, res) => res.send({
   status: 'health check successful',
+  service: 'quick-comm-backend',
+  uptime: process.uptime(),
   time: new Date().toISOString()
 }));
+
+// API health check (used by Nginx / infra)
+app.get('/api/health', (req, res) => {
+  res.send({
+    status: 'healthy',
+    service: 'quick-comm-backend',
+  });
+});
+
 
 // routes
 app.use("/api/auth", authRoutes);
