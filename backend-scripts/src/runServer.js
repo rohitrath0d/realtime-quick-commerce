@@ -39,8 +39,8 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
 }));
 
-// Preflight
-app.options('*', cors());
+// // Preflight
+// app.options('*', cors());
 
 const httpServer = http.createServer(app);
 // const socketConnection= socketIO(httpServer)
