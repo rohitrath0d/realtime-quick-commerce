@@ -223,7 +223,7 @@ const CartPage = () => {
                   <img
                     src={item.imageUrl}
                     alt={item.name}
-                    fill="true"
+                    // fill="true"
                     className="object-cover"
                   />
                 ) : (

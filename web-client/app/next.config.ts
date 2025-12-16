@@ -1,9 +1,24 @@
 import type { NextConfig } from "next";
 
+// const nextConfig: NextConfig = {
+//   experimental: {
+//     appDir: true,
+//   }
+// };
+
+
 const nextConfig: NextConfig = {
-  experimental: {
-    appDir: true,
-  }
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**',
+        pathname: '/**',
+      },
+    ],
+  },
+
 };
+
 
 export default nextConfig;
