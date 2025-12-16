@@ -14,7 +14,7 @@ api.interceptors.request.use((config) => {
   try {
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
     console.log("Token got from the localStorage-->", token);
-    
+
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -29,7 +29,7 @@ api.interceptors.response.use(
   (res) => res,
   (error) => {
     if (error?.response) {
-      console.log(error); 
+      console.log(error);
       const status = error.response.status;
       const message = error.response.data?.message || error.message || 'API Error';
       const err = new Error(message) as Error & { status?: number };
@@ -77,10 +77,10 @@ export const storeApi = {
   getStore: () =>
     api.get('/store').then(res => res.data as { exists: boolean; store?: any }),
 
-  createStore: (data: CreateStoreData) => 
+  createStore: (data: CreateStoreData) =>
     api.post('/store', data).then(handleData),
 
-  deleteStore: (id: string) => 
+  deleteStore: (id: string) =>
     api.delete(`/store/${id}`).then(handleData),
 
   // Product management
@@ -105,9 +105,16 @@ export const storeApi = {
 // Delivery
 export const deliveryApi = {
   getUnassignedOrders: () => api.get('/delivery/orders/unassigned').then((res) => res.data.data),
-  getMyOrders: () => api.get('/delivery/orders/my').then((res) => res.data.data),
+  getMyOrders: () =>
+    api.get('/delivery/orders/my').then((res) => {
+      const d = res.data;
+      // normalize shapes: { success, data } or direct array
+      return Array.isArray(d) ? d : d?.data ?? [];
+    }),
   acceptOrder: (id: string) => api.post(`/delivery/orders/${id}/accept`).then(handleData),
   updateStatus: (id: string, status: string) => api.post(`/delivery/orders/${id}/status`, { status }).then(handleData),
+  getProfile: () => api.get('/delivery/profile').then(handleData),
+  getStats: () => api.get('/delivery/stats').then(handleData),
 };
 
 // Admin

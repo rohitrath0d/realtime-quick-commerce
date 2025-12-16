@@ -4,16 +4,17 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { 
-  LayoutDashboard, 
-  Package, 
-  Truck, 
-  Store, 
+import {
+  LayoutDashboard,
+  Package,
+  Truck,
+  Store,
   ShoppingCart,
   ClipboardList,
   PlusCircle,
   Home,
   Users,
+  User,
   ChevronLeft,
   ChevronRight,
   LogOut
@@ -49,6 +50,7 @@ const navConfigs: Record<string, NavItem[]> = {
     { path: "/delivery", label: "Dashboard", icon: LayoutDashboard },
     { path: "/delivery/my-orders", label: "My Orders", icon: Package },
     { path: "/delivery/available", label: "Available Orders", icon: ClipboardList },
+    { path: "/delivery/profile", label: "Profile", icon: User },
   ],
   customer: [
     { path: "/customer", label: "Shop", icon: Home },
@@ -68,7 +70,7 @@ const Sidebar = ({ role }: SidebarProps) => {
   const pathname = usePathname();
   const { user, logout } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
-  
+
   const navItems = navConfigs[role] || [];
 
   const isActive = (path: string) => {
@@ -79,7 +81,7 @@ const Sidebar = ({ role }: SidebarProps) => {
   };
 
   return (
-    <aside 
+    <aside
       className={cn(
         "fixed left-0 top-0 h-full bg-card border-r border-border z-40 transition-all duration-300 flex flex-col",
         collapsed ? "w-16" : "w-64"

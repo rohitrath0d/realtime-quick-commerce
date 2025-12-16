@@ -1,6 +1,6 @@
 import express from 'express';
 import { protectAuth } from '../middlewares/auth-middleware.js'
-import { acceptOrder, getMyAssignedOrders, getUnassignedDeliveries, 
+import { acceptOrder, getMyAssignedOrders, getUnassignedDeliveries, updateOrderStatus, 
   // updateOrderStatus 
 } from '../controllers/delivery-controller.js';
 import { authorizeRole } from '../middlewares/role-middleware.js';
@@ -11,7 +11,23 @@ const router = express.Router();
 // GET  /api/delivery/orders/my           -> orders assigned to me
 // POST /api/delivery/orders/:id/accept   -> accept & lock
 // POST /api/delivery/orders/:id/status   -> update status
+// GET  /api/delivery/profile            -> delivery profile + stats
+// GET  /api/delivery/stats              -> delivery dashboard stats
 
+
+router.get(
+  "/profile",
+  protectAuth,
+  authorizeRole("DELIVERY"),
+  getDeliveryProfile
+);
+
+router.get(
+  "/stats",
+  protectAuth,
+  authorizeRole("DELIVERY"),
+  getDeliveryStats
+);
 
 router.get(
   "/orders/unassigned",
@@ -27,12 +43,12 @@ router.post(
   acceptOrder
 );
 
-// router.post(
-//   "/orders/:id/status",
-//   protectAuth,
-//   authorizeRole("DELIVERY"),
-//   updateOrderStatus
-// );
+router.post(
+  "/orders/:id/status",
+  protectAuth,
+  authorizeRole("DELIVERY"),
+  updateOrderStatus
+);
 
 router.get(
   "/orders/my",
