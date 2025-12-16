@@ -14,14 +14,36 @@ import storeRoutes from './routes/store-routes.js'
 import paymentRoutes from './routes/payment-routes.js'
 
 const app = express();
+const allowedOrigins = [
+  process.env.FRONTEND_URL
+];
+
 app.use(express.json());
-app.use(cors());
+// app.use(cors());
+
+// cors config
+app.use(cors({
+  origin: function (origin, callback) {
+    // allow requests with no origin (postman, curl)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      return callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+}));
+
 
 const httpServer = http.createServer(app);
 // const socketConnection= socketIO(httpServer)
 const socketConnection = new Server(httpServer, {
   cors: {
-    origin: '*',  // for dev env only
+    // origin: '*',  // for dev env only
+    origin: process.env.NEXT_FRONTEND_URL,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS']
   }
 })

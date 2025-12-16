@@ -2,18 +2,20 @@ services:
   backend:
     build: ./backend
     container_name: quick-comm-backend
-    environment:
-      - MONGO_URI=${MONGO_URI}  # use this to read from .env file 
+    env_file:
+      - .env
     ports:
-      - "4000:4000"
-    
+      - "4000:4000"   # TEMP: remove later when nginx is added
+    restart: always
 
   frontend:
     build: ./frontend
     container_name: quick-comm-frontend
+    env_file:
+      - .env
     ports:
-      - "3000:80"
-
+      - "3000:3000"   # Next.js runs on 3000
+    restart: always
 
 
 # commands to run for backend & frontend dockerfiles build
