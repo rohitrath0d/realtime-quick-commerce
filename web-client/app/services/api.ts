@@ -48,62 +48,61 @@ const handleData = <T>(res: { data: T }) => res.data;
 
 // Auth
 export const authApi = {
-  login: (email: string, password: string) => api.post('/auth/login', { email, password }).then(handleData),
+  login: (email: string, password: string) => api.post('/api/auth/login', { email, password }).then(handleData),
   register: (data: { name: string; email: string; password: string; role: string; phone?: string }) =>
-    api.post('/auth/register', data).then(handleData),
-  getProfile: () => api.get('/auth/profile').then(handleData),
+    api.post('/api/auth/register', data).then(handleData),
+  getProfile: () => api.get('/api/auth/profile').then(handleData),
 };
 
 // Customer
 export const customerApi = {
   // return orders array directly
-  getMyOrders: () => api.get('/orders/my').then((res) => res.data.data),
-  getOrderById: (id: string) => api.get(`/orders/${id}`).then(handleData),
-  placeOrder: (data: PlaceOrderData) => api.post('/orders', data).then(handleData),
-  getPublicProducts: () => api.get('/product/public').then((res) => res.data.data),
+  getMyOrders: () => api.get('/api/orders/my').then((res) => res.data.data),
+  getOrderById: (id: string) => api.get(`/api/orders/${id}`).then(handleData),
+  placeOrder: (data: PlaceOrderData) => api.post('/api/orders', data).then(handleData),
+  getPublicProducts: () => api.get('/api/product/public').then((res) => res.data.data),
 };
 
 // Store
 export const storeApi = {
   getStoreOrders: () =>
-    api.get('/store/orders').then(res => res.data as { data: Order[]; storeExists: boolean; store?: any }),
+    api.get('/api/store/orders').then(res => res.data as { data: Order[]; storeExists: boolean; store?: any }),
 
   getAllStoreOrders: () =>
-    api.get('/store/orders/all').then(res => res.data as { data: Order[]; storeExists: boolean }),
+    api.get('/api/store/orders/all').then(res => res.data as { data: Order[]; storeExists: boolean }),
 
   getStats: () =>
-    api.get('/store/stats').then(handleData),
+    api.get('/api/store/stats').then(handleData),
 
   acceptOrder: (id: string) =>
-    api.post(`/store/orders/${id}/accept`).then(res => res.data.data as Order),
+    api.post(`/api/store/orders/${id}/accept`).then(res => res.data.data as Order),
 
   startPacking: (id: string) =>
-    api.post(`/store/orders/${id}/packing`).then(res => res.data.data as Order),
+    api.post(`/api/store/orders/${id}/packing`).then(res => res.data.data as Order),
 
   markAsPacked: (id: string) =>
-    api.post(`/store/orders/${id}/packed`).then(res => res.data.data as Order),
+    api.post(`/api/store/orders/${id}/packed`).then(res => res.data.data as Order),
 
   getStore: () =>
-    api.get('/store').then(res => res.data as { exists: boolean; store?: any }),
+    api.get('/api/store').then(res => res.data as { exists: boolean; store?: any }),
 
   createStore: (data: CreateStoreData) =>
-    api.post('/store', data).then(handleData),
+    api.post('/api/store', data).then(handleData),
 
   deleteStore: (id: string) =>
-    api.delete(`/store/${id}`).then(handleData),
+    api.delete(`/api/store/${id}`).then(handleData),
 
   // Product management
   getProducts: () =>
-    api.get('/product').then(res => res.data.data),
-
+    api.get('/api/product').then(res => res.data.data),
   createProduct: (data: CreateProductData) =>
-    api.post('/product', data).then(handleData),
+    api.post('/api/product', data).then(handleData),
 
   updateProduct: (id: string, data: Partial<CreateProductData>) =>
-    api.put(`/product/${id}`, data).then(handleData),
+    api.put(`/api/product/${id}`, data).then(handleData),
 
   deleteProduct: (id: string) =>
-    api.delete(`/product/${id}`).then(handleData),
+    api.delete(`/api/product/${id}`).then(handleData),
 };
 // console.log("Get store orders--> ", storeApi.getStoreOrders);
 // console.log("Get Accept Store orders--> ", storeApi.acceptOrder);
@@ -113,65 +112,64 @@ export const storeApi = {
 
 // Delivery
 export const deliveryApi = {
-  getUnassignedOrders: () => api.get('/delivery/orders/unassigned').then((res) => res.data.data),
+  getUnassignedOrders: () => api.get('/api/delivery/orders/unassigned').then((res) => res.data.data),
   getMyOrders: () =>
-    api.get('/delivery/orders/my').then((res) => {
+    api.get('/api/delivery/orders/my').then((res) => {
       const d = res.data;
       // normalize shapes: { success, data } or direct array
       return Array.isArray(d) ? d : d?.data ?? [];
     }),
-  acceptOrder: (id: string) => api.post(`/delivery/orders/${id}/accept`).then(handleData),
-  updateStatus: (id: string, status: string) => api.post(`/delivery/orders/${id}/status`, { status }).then(handleData),
-  getProfile: () => api.get('/delivery/profile').then(handleData),
-  getStats: () => api.get('/delivery/stats').then(handleData),
+  acceptOrder: (id: string) => api.post(`/api/delivery/orders/${id}/accept`).then(handleData),
+  updateStatus: (id: string, status: string) => api.post(`/api/delivery/orders/${id}/status`, { status }).then(handleData),
+  getProfile: () => api.get('/api/delivery/profile').then(handleData),
+  getStats: () => api.get('/api/delivery/stats').then(handleData),
 };
 
 // Admin
 export const adminApi = {
   getAllOrders: (status?: string) =>
     api
-      .get(`/admin/orders${status ? `?status=${status}` : ""}`)
+      .get(`/api/admin/orders${status ? `?status=${status}` : ""}`)
       .then((res) => res.data.data as Order[]),
 
   getDeliveryPartners: () =>
     api
-      .get("/admin/delivery-partners")
+      .get("/api/admin/delivery-partners")
       .then((res) => res.data.data as DeliveryPartner[]),
 
   getStats: () =>
     api
-      .get("/admin/live-stats")
+      .get("/api/admin/live-stats")
       .then((res) => res.data as AdminStats),
 
   getAllStores: () =>
     api
-      .get("/admin/stores")
+      .get("/api/admin/stores")
       .then((res) => res.data.data),
 
   deleteStore: (id: string) =>
-    api.delete(`/admin/stores/${id}`).then((res) => res.data),
-
+    api.delete(`/api/admin/stores/${id}`).then((res) => res.data),
 };
 
 // Payment
 export const paymentApi = {
   createOrder: (amount: number, currency = 'INR') =>
-    api.post('/payment/create-order', { amount, currency }).then(handleData),
+    api.post('/api/payment/create-order', { amount, currency }).then(handleData),
 
   verifyPayment: (data: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string }) =>
-    api.post('/payment/verify', data).then(handleData),
+    api.post('/api/payment/verify', data).then(handleData),
 
   getPaymentDetails: (paymentId: string) =>
-    api.get(`/payment/details/${paymentId}`).then(handleData),
+    api.get(`/api/payment/details/${paymentId}`).then(handleData),
 
   refundPayment: (paymentId: string, amount?: number) =>
-    api.post('/payment/refund', { paymentId, amount }).then(handleData),
+    api.post('/api/payment/refund', { paymentId, amount }).then(handleData),
 };
 
 // Products (public)
 export const productApi = {
   // Returns array of products
-  getPublicProducts: () => api.get('/product/public').then((res) => res.data.data),
+  getPublicProducts: () => api.get('/api/product/public').then((res) => res.data.data),
 };
 
 // Types
