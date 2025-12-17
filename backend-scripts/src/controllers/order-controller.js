@@ -66,6 +66,11 @@ export const getMyOrders = async (req, res) => {
       // .populate("assignedTo", "name");
       .populate("deliveryPartner", "name");
 
+    console.log(req.user);
+    console.log(req.query);
+    console.log("User ID:", req.user.id, typeof req.user.id);
+
+
     // Happy case: Orders are found, return them
     if (orders.length > 0) {
       return res.status(200).json({
