@@ -165,7 +165,7 @@ const LoginPageInner = () => {
 
           <div className="mt-6 text-center">
             <p className="text-sm text-muted-foreground">
-              Don&apost have an account?{' '}
+              Don&apos;t have an account?{' '}
               <Link href="/register" className="text-primary hover:underline font-medium">
                 Sign up
               </Link>

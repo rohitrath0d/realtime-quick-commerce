@@ -1,7 +1,7 @@
 "use client";
 // import { Link } from "react-router-dom";
 import Link from "next/link";
-import { User, Truck, LayoutDashboard, Zap, Shield, Clock } from "lucide-react";
+import { User, TruckElectric, LayoutDashboard, Zap, Shield, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import HomePageDeliveryAnimation from "@/components/animations/HomePageDelivery"; "../components/animations/HomePageDelivery"
 
@@ -16,7 +16,7 @@ const roleCards = [
   {
     title: "Delivery Partner",
     description: "Accept orders, update delivery status, and manage your deliveries",
-    icon: Truck,
+    icon: TruckElectric,
     path: "/delivery",
     gradient: "from-accent to-warning",
   },

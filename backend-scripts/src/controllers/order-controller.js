@@ -10,7 +10,13 @@ export const placeOrder = async (req, res) => {
     if (!items || !items.length) return res.status(400).json({ error: 'No items provided' });
 
     const store = await Store.findOne({ isActive: true });
-    if (!store) throw new Error("No active store available");
+    // if (!store) throw new Error("No active store available");
+    if (!store) {
+      return res.status(400).json({
+        success: false,
+        message: "No active store available"
+      });
+    }
 
     let total = 0;
     const orderItems = [];
@@ -18,7 +24,10 @@ export const placeOrder = async (req, res) => {
     for (const item of items) {
       const product = await Product.findById(item.productId);
       if (!product || !product.isActive) {
-        throw new Error("Invalid or inactive product");
+        return res.status(400).json({
+          success: false,
+          message: `Invalid or inactive product: ${item.productId}`
+        });
       }
 
       total += product.price * item.quantity;
@@ -37,6 +46,10 @@ export const placeOrder = async (req, res) => {
       total,
       status: "PLACED",
     });
+
+
+    // Populate for complete response
+    await order.populate("store", "name");
 
     // emit socket event to partners & admin
     const io = req.app.get('io');
@@ -60,28 +73,31 @@ export const placeOrder = async (req, res) => {
 
 export const getMyOrders = async (req, res) => {
   try {
+
+    console.log("getMyOrders called");
+    console.log("User:", req.user);
+    console.log("User ID:", req.user.id);
+
     const orders = await Order.find({ customer: req.user.id })
       .sort({ createdAt: -1 })
-      .populate("store", "name")
+      .populate("store", "name address")
       // .populate("assignedTo", "name");
       .populate("deliveryPartner", "name");
+
+    console.log("Orders found:", orders.length);
 
     console.log(req.user);
     console.log(req.query);
     console.log("User ID:", req.user.id, typeof req.user.id);
 
-
-    // Happy case: Orders are found, return them
-    if (orders.length > 0) {
-      return res.status(200).json({
-        success: true,
-        count: orders.length,
-        data: orders,
-      });
-    }
-
-    console.log('User ID:', req.user.id); // Checking if it's a valid ObjectId
-    console.log('Orders found:', orders.length);
+    // // Happy case: Orders are found, return them
+    // if (orders.length > 0) {
+    //   return res.status(200).json({
+    //     success: true,
+    //     count: orders.length,
+    //     data: orders,
+    //   });
+    // }
 
     res.status(200).json({
       success: true,
@@ -89,7 +105,7 @@ export const getMyOrders = async (req, res) => {
       data: orders,
     });
   } catch (err) {
-    console.error(err);
+    console.error("getMyOrders error:", err);
     res.status(500).json({
       success: false,
       message: "Error in Get My Orders API",
@@ -102,12 +118,15 @@ export const getOrderById = async (req, res) => {
   try {
     // Validate ID early to avoid casting errors and clearer responses
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-      return res.status(400).json({ success: false, message: 'Invalid order id' });
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid order id'
+      });
     }
 
     const order = await Order.findById(req.params.id)
       .populate("customer", "name email")
-      .populate("store", "name")
+      .populate("store", "nam address")
       // .populate("assignedTo", "name");
       .populate("deliveryPartner", "name");
 
@@ -118,17 +137,18 @@ export const getOrderById = async (req, res) => {
       });
     }
 
-    // Access control
+    // Access control: Check if user has permission to view this order
     const user = req.user;
-    if (
-      (user.role === "CUSTOMER" && order.customer._id.toString() !== user.id) ||
-      (user.role === "STORE" && order.store._id.toString() !== user.storeId) ||
-      // (user.role === "DELIVERY" && order.assignedTo?._id.toString() !== user.id)
-      (user.role === "DELIVERY" && order.deliveryPartner?._id.toString() !== user.id)
-    ) {
+
+    const isCustomer = user.role === "CUSTOMER" && order.customer._id.toString() === user.id;
+    const isStore = user.role === "STORE" && order.store._id.toString() === user.storeId;
+    const isDelivery = user.role === "DELIVERY" && order.deliveryPartner?._id.toString() === user.id;
+    const isAdmin = user.role === "ADMIN";
+
+    if (!isCustomer && !isStore && !isDelivery && !isAdmin) {
       return res.status(403).json({
         success: false,
-        message: "Forbidden",
+        message: "You don't have permission to view this order",
       });
     }
 

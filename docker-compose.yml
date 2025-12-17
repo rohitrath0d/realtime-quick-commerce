@@ -9,7 +9,12 @@ services:
     restart: always
 
   frontend:
-    build: ./web-client/app
+    build: 
+      context: ./web-client/app
+      args:
+        NEXT_PUBLIC_RAZORPAY_KEY_ID: ${NEXT_PUBLIC_RAZORPAY_KEY_ID}
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+        NEXT_PUBLIC_SOCKET_URL: ${NEXT_PUBLIC_SOCKET_URL}
     container_name: quick-comm-frontend
     env_file:
       - .env

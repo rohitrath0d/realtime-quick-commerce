@@ -1,23 +1,24 @@
 # Use the official Node.js image as the base image
 FROM node:20
 
-# Set the working directory inside the container
+# Build-time args (Next.js inlines NEXT_PUBLIC_* at build time)
+ARG NEXT_PUBLIC_RAZORPAY_KEY_ID
+ARG NEXT_PUBLIC_API_URL
+ARG NEXT_PUBLIC_SOCKET_URL
+
+# Make them available during build AND runtime
+ENV NEXT_PUBLIC_RAZORPAY_KEY_ID=${NEXT_PUBLIC_RAZORPAY_KEY_ID}
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+ENV NEXT_PUBLIC_SOCKET_URL=${NEXT_PUBLIC_SOCKET_URL}
+
 WORKDIR /app
 
-# Copy package.json and package-lock.json to the container
 COPY package.json package-lock.json ./
-
-# Install dependencies
-RUN npm install
-
-# Copy the rest of the application code
+RUN npm ci
 COPY . .
 
-# Build the Next.js application
 RUN npm run build
 
-# Expose the port the frontend listens on
-EXPOSE 80
-
-# Start the Next.js application
+# Next.js defaults to 3000 unless you set PORT
+EXPOSE 3000
 CMD ["npm", "start"]

@@ -33,6 +33,8 @@ const StoreProductsPage = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [savingEdit, setSavingEdit] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const fetchProducts = useCallback(async () => {
@@ -61,6 +63,24 @@ const StoreProductsPage = () => {
       toast.error(error instanceof Error ? error.message : "Failed to delete product");
     } finally {
       setDeletingId(null);
+    }
+  };
+
+  const handleUpdate = async (updatedProduct: Product) => {
+    setSavingEdit(true); // show loading state
+    try {
+      // await storeApi.updateProduct(productId);
+      await storeApi.updateProduct(updatedProduct._id, updatedProduct);
+      // setProducts((prev) => prev.filter((p) => p._id !== productId));
+      setProducts((prev) =>
+        prev.map((p) => (p._id === updatedProduct._id ? updatedProduct : p))
+      );
+      toast.success("Product deleted successfully");
+      setEditingProduct(null); // close modal
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to delete product");
+    } finally {
+      setSavingEdit(false);
     }
   };
 
@@ -116,8 +136,8 @@ const StoreProductsPage = () => {
             <div className="flex items-start justify-between mb-3">
               <div className="flex items-center gap-3">
                 {product.imageUrl ? (
-                  <img 
-                    src={product.imageUrl} 
+                  <img
+                    src={product.imageUrl}
                     alt={product.name}
                     className="w-16 h-16 rounded-xl object-cover"
                   />
@@ -128,11 +148,10 @@ const StoreProductsPage = () => {
                 )}
                 <div>
                   <h3 className="font-semibold text-foreground">{product.name}</h3>
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                    product.isActive 
-                      ? "bg-success/15 text-success" 
-                      : "bg-muted text-muted-foreground"
-                  }`}>
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${product.isActive
+                    ? "bg-success/15 text-success"
+                    : "bg-muted text-muted-foreground"
+                    }`}>
                     {product.isActive ? "Active" : "Inactive"}
                   </span>
                 </div>
@@ -147,17 +166,26 @@ const StoreProductsPage = () => {
             )}
 
             <div className="flex gap-2 pt-3 border-t border-border">
-              <Link href={`/store/products/${product._id}/edit`} className="flex-1">
-                <Button variant="outline" size="sm" className="w-full gap-2">
-                  <Edit className="w-4 h-4" />
-                  Edit
-                </Button>
-              </Link>
+
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button 
-                    variant="destructive" 
-                    size="sm" 
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1 gap-2"
+                    onClick={() => setEditingProduct(product)} // open modal
+                  >
+                    <Edit className="w-4 h-4" />
+                    Edit
+                  </Button>
+                </AlertDialogTrigger>
+              </AlertDialog>
+
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="destructive"
+                    size="sm"
                     className="flex-1 gap-2"
                     disabled={deletingId === product._id}
                   >
@@ -191,6 +219,99 @@ const StoreProductsPage = () => {
           </div>
         ))}
       </div>
+
+
+      {editingProduct && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-xl w-full max-w-lg relative">
+            <h2 className="text-xl font-bold mb-4">Edit Product</h2>
+
+            <div className="space-y-3">
+              <div>
+                <label className="block mb-1 font-medium">Name</label>
+                <Input
+                  value={editingProduct.name}
+                  onChange={(e) =>
+                    setEditingProduct({ ...editingProduct, name: e.target.value })
+                  }
+                />
+              </div>
+
+              <div>
+                <label className="block mb-1 font-medium">Description</label>
+                <Input
+                  value={editingProduct.description || ""}
+                  onChange={(e) =>
+                    setEditingProduct({ ...editingProduct, description: e.target.value })
+                  }
+                />
+              </div>
+
+              <div>
+                <label className="block mb-1 font-medium">Price</label>
+                <Input
+                  type="number"
+                  value={editingProduct.price}
+                  onChange={(e) =>
+                    setEditingProduct({ ...editingProduct, price: Number(e.target.value) })
+                  }
+                />
+              </div>
+
+              <div>
+                <label className="block mb-1 font-medium">Image URL</label>
+                <Input
+                  value={editingProduct.imageUrl || ""}
+                  onChange={(e) =>
+                    setEditingProduct({ ...editingProduct, imageUrl: e.target.value })
+                  }
+                />
+              </div>
+
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={editingProduct.isActive}
+                  onChange={(e) =>
+                    setEditingProduct({ ...editingProduct, isActive: e.target.checked })
+                  }
+                />
+                <span>Active</span>
+              </div>
+
+              <div className="flex gap-2 mt-4">
+                <Button
+                  onClick={async () => {
+                    if (!editingProduct) return;
+                    setSavingEdit(true);
+                    try {
+                      await storeApi.updateProduct(editingProduct._id, editingProduct);
+                      setProducts((prev) =>
+                        prev.map((p) =>
+                          p._id === editingProduct._id ? editingProduct : p
+                        )
+                      );
+                      toast.success("Product updated successfully");
+                      setEditingProduct(null);
+                    } catch (err) {
+                      toast.error(err instanceof Error ? err.message : "Failed to update product");
+                    } finally {
+                      setSavingEdit(false);
+                    }
+                  }}
+                  disabled={savingEdit}
+                >
+                  {savingEdit ? "Saving..." : "Save Changes"}
+                </Button>
+                <Button variant="outline" onClick={() => setEditingProduct(null)}>
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
 
       {filteredProducts.length === 0 && (
         <div className="text-center py-16">
