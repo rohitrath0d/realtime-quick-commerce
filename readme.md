@@ -9,11 +9,6 @@
 - [Setup Instructions](#setup-instructions)
 - [Docker Configuration](#docker-configuration)
 - [Hosting & Deployment](#hosting--deployment)
-- [WebSocket Implementation](#websocket-implementation)
-- [Scaling Strategy](#scaling-strategy)
-- [Future Improvements](#future-improvements)
-- [Contributing](#contributing)
-- [License](#license)
 
 ---
 
