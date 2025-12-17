@@ -5,7 +5,7 @@ services:
     env_file:
       - .env
     ports:
-      - "4000:4000"   # TEMP: remove later when nginx is added
+      - "4000:4000"   # TEMP: remove l  ater when nginx is added
     restart: always
 
   frontend:
