@@ -1,12 +1,6 @@
 import Razorpay from 'razorpay';
 import crypto from 'crypto';
 
-// Initialize Razorpay instance
-// const razorpay = new Razorpay({
-//   key_id: process.env.RAZORPAY_KEY_ID || 'rzp_test_demo',
-//   key_secret: process.env.RAZORPAY_KEY_SECRET || 'demo_secret',
-// });
-
 let razorpay;
 
 const getRazorpayClient = () => {
@@ -46,7 +40,6 @@ export const createOrder = async (req, res) => {
       },
     };
 
-    // const order = await razorpay.orders.create(options);
     const order = await razorpayClient.orders.create(options);
 
     res.status(201).json({
@@ -81,7 +74,6 @@ export const verifyPayment = async (req, res) => {
 
     // Verify signature
     const body = razorpay_order_id + '|' + razorpay_payment_id;
-
     const secret = process.env.RAZORPAY_KEY_SECRET;
 
     if (!secret) {
@@ -92,7 +84,6 @@ export const verifyPayment = async (req, res) => {
     }
 
     const expectedSignature = crypto
-      // .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET || 'demo_secret')
       .createHmac('sha256', secret)
       .update(body.toString())
       .digest('hex');
@@ -136,7 +127,6 @@ export const getPaymentDetails = async (req, res) => {
       });
     }
 
-    // const payment = await razorpay.payments.fetch(paymentId);
     const payment = await razorpayClient.payments.fetch(paymentId);
 
     res.status(200).json({
@@ -173,7 +163,6 @@ export const refundPayment = async (req, res) => {
       refundOptions.amount = Math.round(amount * 100);
     }
 
-    // const refund = await razorpay.payments.refund(paymentId, refundOptions);
     const refund = await razorpayClient.payments.refund(paymentId, refundOptions);
 
     res.status(200).json({
